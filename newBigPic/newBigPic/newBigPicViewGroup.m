@@ -1,13 +1,15 @@
 //
 //  newBigPicViewGroup.m
-//  mikuWeibo
+//  newBigPic
 //
-//  Created by mikun on 2017/1/24.
-//  Copyright © 2017年 庄黛淳华. All rights reserved.
+//  Created by mikun on 2017/2/24.
+//  Copyright © 2017年 mikun. All rights reserved.
 //
 
 #import "newBigPicViewGroup.h"
 #import "newBigPicView.h"
+#import "predefine.h"
+
 @interface newBigPicViewGroup()<UIScrollViewDelegate,newBigPicViewDelegate>{
     CGFloat screenWidth;//这三个全局变量在baseSetting中设置
     CGFloat screenHeight;
@@ -43,7 +45,19 @@
 
 @implementation newBigPicViewGroup
 
+-(CGFloat)animationTime{
+	if (!_animationTime) {
+		_animationTime = 0.25;
+	}
+	return _animationTime;
+}
 
+-(CGFloat)BGAlpha{
+	if (!_BGAlpha) {
+		_BGAlpha = 0.9;
+	}
+	return _BGAlpha;
+}
 
 +(newBigPicViewGroup *)bigPictureGroup{
     newBigPicViewGroup *group = [[newBigPicViewGroup alloc]initWithFrame:newKeywindow.frame];
@@ -110,8 +124,8 @@
     UIWindow *win = newKeywindow;
     win.windowLevel = UIWindowLevelAlert;
     [win.rootViewController.view addSubview:self];
-    [UIView animateWithDuration:animationTime animations:^{
-        _bgView.alpha = BigPicViewBGAlpha;
+    [UIView animateWithDuration:self.animationTime animations:^{
+        _bgView.alpha = self.BGAlpha;
     }];
     showingIndex = idx;
     picSuperView = picsView;
@@ -232,7 +246,7 @@
 }
 
 -(void)dismissBigPicViews{
-    [UIView animateWithDuration:animationTime animations:^{
+    [UIView animateWithDuration:self.animationTime animations:^{
         _bgView.alpha = 0;
     } completion:^(BOOL finished) {
         [self removeFromSuperview];

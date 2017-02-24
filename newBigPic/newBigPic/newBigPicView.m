@@ -1,15 +1,19 @@
 //
 //  newBigPicView.m
-//  mikuWeibo
+//  newBigPic
 //
-//  Created by mikun on 2016/12/27.
-//  Copyright © 2016年 庄黛淳华. All rights reserved.
+//  Created by mikun on 2017/2/24.
+//  Copyright © 2017年 mikun. All rights reserved.
 //
 
 #import "newBigPicView.h"
-#import "wbPicSize.h"
+//#import "wbPicSize.h"
 #import "Reachability.h"
 #import "MBProgressHUD+MJ.h"
+#import "predefine.h"
+#import "SDImageCache.h"
+#import "SDWebImageManager.h"
+#import "UIImageView+WebCache.h"
 
 /*开发日志
  尝试使用 collectionview,无法实现点开图片缩放的效果,会导致线程阻塞(更新,缩放效果靠调整图片 frame 而不是整个 view 可以实现)
@@ -67,6 +71,27 @@
 
 @implementation newBigPicView
 
+-(CGFloat)animationTime{
+	if (!_animationTime) {
+		if (self.delegate) {
+			_animationTime = [self.delegate animationTime];
+		}else{
+			_animationTime = 0.25;
+		}
+	}
+	return _animationTime;
+}
+
+-(CGFloat)BGAlpha{
+	if (!_BGAlpha) {
+		if (self.delegate) {
+			_BGAlpha = [self.delegate BGAlpha];
+		}else{
+			_BGAlpha = 0.9;
+		}
+	}
+	return _BGAlpha;
+}
 
 
 +(newBigPicView *)bigPicture{
@@ -150,8 +175,8 @@
 	
 	CGRect oriFrameOfBigPicView = [picSuperView convertRect:picsView.subviews[idx].frame toView:nil];
 	_showingPicView.frame= oriFrameOfBigPicView;
-	[UIView animateWithDuration:animationTime animations:^{
-		_bgView.alpha = BigPicViewBGAlpha;
+	[UIView animateWithDuration:self.animationTime animations:^{
+		_bgView.alpha = self.BGAlpha;
 		if (1<=picRatio) {//如果是竖立的图片:
 			_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
 		}else{
@@ -193,7 +218,7 @@
 		_showingPicView.frame = (CGRect){{(screenWidth-picH)/2, (screenHeight-picH)/2}, picH, picH};
 
 	}
-	[UIView animateWithDuration:animationTime animations:^{
+	[UIView animateWithDuration:self.animationTime animations:^{
 		_showingPicView.alpha =1;
 	}];
 	
@@ -213,7 +238,9 @@
 	screenWidth =newScreenWidth;
 	screenHeight = newScreenHeight;
 	wbPicSize *picSize = [wbPicSize sharedPicSize];
+	
 	thumb150whURL = showPicView.sd_imageURL.absoluteString;
+	
 	NSString *thumb120bURL = [thumb150whURL stringByReplacingOccurrencesOfString:picSize.size150wh withString:picSize.size120b];
 	UIImage *image = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:thumb120bURL];
 	
@@ -251,7 +278,7 @@
 			//如果是从150p 来的需要调用这个方法调整尺寸
 			CGFloat picH = screenWidth*picRatio;//算出来的高度
 			CGFloat picY = (screenHeight-picH)/2;
-			[UIView animateWithDuration:animationTime animations:^{
+			[UIView animateWithDuration:self.animationTime animations:^{
 				_contentView.contentSize = CGSizeMake(screenWidth, picH);
 				_showingPicView.frame = (CGRect){{0, 0}, screenWidth, picH};
 				_contentView.contentInset = UIEdgeInsetsMake(0>picY?0:picY, 0, 0, 0);
@@ -267,7 +294,7 @@
 		}else{
 			CGFloat picH = _showingPicView.height;
 			CGFloat picW = picH/picRatio;//算出来的高度
-			[UIView animateWithDuration:animationTime animations:^{
+			[UIView animateWithDuration:self.animationTime animations:^{
 				_contentView.contentSize = CGSizeMake(picW, picH);
 				//如果不把设置 contentsize 放这里,这个动画结束会导致位置图片高了一点
 				//原因是因为线程关系,animate 的completion 会在外层的completion 结束后再运行
@@ -324,7 +351,7 @@
 
 	CGFloat animateRatio = (picRatio<2?picRatio:2)-1;
 	animateRatio = animateRatio>1?animateRatio:1;
-	[UIView animateWithDuration:animationTime*animateRatio delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
+	[UIView animateWithDuration:self.animationTime*animateRatio delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		if ([self.delegate respondsToSelector:@selector(dismissBigPicViews)]){
 			[self.delegate dismissBigPicViews];
 		}

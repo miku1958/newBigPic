@@ -1,16 +1,23 @@
 //
 //  newBigPicView.h
-//  mikuWeibo
+//  newBigPic
 //
-//  Created by mikun on 2016/12/27.
-//  Copyright © 2016年 庄黛淳华. All rights reserved.
+//  Created by mikun on 2017/2/24.
+//  Copyright © 2017年 mikun. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
-#define BigPicViewBGAlpha 0.9
+
 #define predictMargin 30
+
+
 @protocol newBigPicViewDelegate <NSObject>
+
+@property (nonatomic,assign)CGFloat animationTime;
+@property (nonatomic,assign)CGFloat BGAlpha;
+
 @optional
+
 - (void)dismissBigPicViews;
 - (void)picShouldChange:(CGFloat)offsetX;
 - (void)picShouldRecover;
@@ -19,6 +26,10 @@
 
 
 @interface newBigPicView : UIView
+
+@property (nonatomic,assign)CGFloat animationTime;
+@property (nonatomic,assign)CGFloat BGAlpha;
+
 /** 初始化方法,不要把这个 view 加到自己的 view 上面去!! */
 +(newBigPicView *)bigPicture;
 
