@@ -36,6 +36,7 @@
 		FF3E122A1E5FE71300861941 /* UIImageView+HighlightedWebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = FF3E12181E5FE71300861941 /* UIImageView+HighlightedWebCache.m */; };
 		FF3E122B1E5FE71300861941 /* UIImageView+WebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = FF3E121A1E5FE71300861941 /* UIImageView+WebCache.m */; };
 		FF3E122C1E5FE71300861941 /* UIView+WebCacheOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = FF3E121C1E5FE71300861941 /* UIView+WebCacheOperation.m */; };
+		FFF2DD761E61C8700021FABD /* picURLs.plist in Resources */ = {isa = PBXBuildFile; fileRef = FFF2DD751E61C8700021FABD /* picURLs.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -97,6 +98,7 @@
 		FF3E121A1E5FE71300861941 /* UIImageView+WebCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImageView+WebCache.m"; sourceTree = "<group>"; };
 		FF3E121B1E5FE71300861941 /* UIView+WebCacheOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+WebCacheOperation.h"; sourceTree = "<group>"; };
 		FF3E121C1E5FE71300861941 /* UIView+WebCacheOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+WebCacheOperation.m"; sourceTree = "<group>"; };
+		FFF2DD751E61C8700021FABD /* picURLs.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = picURLs.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,6 +161,7 @@
 				FF3E11911E5FDF3C00861941 /* newBigPicView.m */,
 				FF3E11921E5FDF3C00861941 /* newBigPicViewGroup.h */,
 				FF3E11931E5FDF3C00861941 /* newBigPicViewGroup.m */,
+				FFF2DD751E61C8700021FABD /* picURLs.plist */,
 			);
 			path = newBigPic;
 			sourceTree = "<group>";
@@ -315,6 +318,7 @@
 				FF3E11881E5FDF1200861941 /* LaunchScreen.storyboard in Resources */,
 				FF3E11B91E5FE3B900861941 /* Images.xcassets in Resources */,
 				FF3E11851E5FDF1200861941 /* Assets.xcassets in Resources */,
+				FFF2DD761E61C8700021FABD /* picURLs.plist in Resources */,
 				FF3E11831E5FDF1200861941 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -507,6 +511,7 @@
 				FF3E118E1E5FDF1200861941 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

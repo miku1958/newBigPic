@@ -71,6 +71,71 @@
 
 @implementation newBigPicView
 
+
+-(CGPoint)picRatio{
+	if (!_picRatio.x) {
+		if (self.delegate) {
+			_picRatio = [self.delegate picRatio];
+		}
+	}
+	return _picRatio;
+}
+
+-(NSString *)exchangeStringToRatioURL{
+	if (!_exchangeStringToRatioURL) {
+		if (self.delegate) {
+			_exchangeStringToRatioURL = [self.delegate exchangeStringToRatioURL];
+		}
+	}
+	return _exchangeStringToRatioURL;
+}
+
+-(NSString *)exchangeStringFromThumbnailURL{
+	if (!_exchangeStringFromThumbnailURL) {
+		if (self.delegate) {
+			_exchangeStringFromThumbnailURL = [self.delegate exchangeStringFromThumbnailURL];
+		}
+	}
+	return _exchangeStringFromThumbnailURL;
+}
+
+-(NSString *)exchangeStringToMobileBigSizeURL{
+	if (!_exchangeStringToMobileBigSizeURL) {
+		if (self.delegate) {
+			_exchangeStringToMobileBigSizeURL = [self.delegate exchangeStringToMobileBigSizeURL];
+		}
+	}
+	return _exchangeStringToMobileBigSizeURL;
+}
+
+-(NSString *)exchangeStringToWIFIBigSizeURL{
+	if (!_exchangeStringToWIFIBigSizeURL) {
+		if (self.delegate) {
+			_exchangeStringToWIFIBigSizeURL = [self.delegate exchangeStringToWIFIBigSizeURL];
+		}
+	}
+	return _exchangeStringToWIFIBigSizeURL;
+}
+
+-(NSString *)exchangeStringToOriSizeURL{
+	if (!_exchangeStringToOriSizeURL) {
+		if (self.delegate) {
+			_exchangeStringToOriSizeURL = [self.delegate exchangeStringToOriSizeURL];
+		}
+	}
+	return _exchangeStringToOriSizeURL;
+}
+
+-(NSString *)exchangeStringToGifURL{
+	if (!_exchangeStringToGifURL) {
+		if (self.delegate) {
+			_exchangeStringToGifURL = [self.delegate exchangeStringToGifURL];
+		}
+	}
+	return _exchangeStringToGifURL;
+}
+
+
 -(CGFloat)animationTime{
 	if (!_animationTime) {
 		if (self.delegate) {
@@ -112,7 +177,7 @@
 	scalePreventLock =0;
 	opening = YES;
 	shouldRecover = NO;
-
+	
 	self.backgroundColor = [UIColor clearColor];
 	
 }
@@ -134,7 +199,7 @@
 		
 		UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(savePic)];
 		[_contentView addGestureRecognizer:longPress];
-
+		
 		[_contentView setBounces:NO ];
 		[_contentView setAlwaysBounceVertical:YES];
 		
@@ -180,7 +245,7 @@
 		if (1<=picRatio) {//如果是竖立的图片:
 			_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
 		}else{
-
+			
 			if (0.5<=picRatio){
 				_showingPicView.frame = (CGRect){{(screenWidth/picRatio-screenWidth)/2, (screenHeight-screenWidth)/2}, screenWidth, screenWidth};
 			}else{
@@ -214,9 +279,9 @@
 	}else{
 		
 		CGFloat picH = screenWidth*picRatio;
-
+		
 		_showingPicView.frame = (CGRect){{(screenWidth-picH)/2, (screenHeight-picH)/2}, picH, picH};
-
+		
 	}
 	[UIView animateWithDuration:self.animationTime animations:^{
 		_showingPicView.alpha =1;
@@ -237,20 +302,27 @@
 	self.showingPicView.image = showPicView.image;
 	screenWidth =newScreenWidth;
 	screenHeight = newScreenHeight;
-	wbPicSize *picSize = [wbPicSize sharedPicSize];
 	
 	thumb150whURL = showPicView.sd_imageURL.absoluteString;
-	
-	NSString *thumb120bURL = [thumb150whURL stringByReplacingOccurrencesOfString:picSize.size150wh withString:picSize.size120b];
-	UIImage *image = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:thumb120bURL];
-	
-	//获取120p 的缩略图获得图片尺寸比例
-	CGFloat picSizeWidth = image.size.width;
-	CGFloat picSizeHeight = image.size.height;
-	picRatio =1;
-	if (picSizeHeight) {
-		picRatio = picSizeHeight/picSizeWidth;
+	NSString *thumb120bURL;
+	if (self.picRatio.x) {
+		picRatio =self.picRatio.y/self.picRatio.x;
+	}else{
+		picRatio =1;
+		if (self.exchangeStringFromThumbnailURL&&self.exchangeStringToRatioURL) {
+			thumb120bURL = [thumb150whURL stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToRatioURL];
+			
+			UIImage *image = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:thumb120bURL];
+			
+			//获取120p 的缩略图获得图片尺寸比例
+			CGFloat picSizeWidth = image.size.width;
+			CGFloat picSizeHeight = image.size.height;
+			if (picSizeHeight) {
+				picRatio = picSizeHeight/picSizeWidth;
+			}
+		}
 	}
+	
 	return [self getBig_picWiththumbnail_pic:thumb150whURL];
 }
 
@@ -348,7 +420,7 @@
 	CGRect oriFrameOfBigPicView = [picSuperView convertRect:showPicView.frame toView:nil];
 	newLog(@"oriFrame:x:%f,y:%f",oriFrameOfBigPicView.origin.x,oriFrameOfBigPicView.origin.y);
 	
-
+	
 	CGFloat animateRatio = (picRatio<2?picRatio:2)-1;
 	animateRatio = animateRatio>1?animateRatio:1;
 	[UIView animateWithDuration:self.animationTime*animateRatio delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -368,7 +440,7 @@
 		[self removeFromSuperview];
 	}];
 	
-
+	
 	
 }
 
@@ -387,9 +459,13 @@
 										  message:@"请选择项目" //tittle和msg会分行,msg字体会小点
 										  preferredStyle:UIAlertControllerStyleActionSheet];
 	UIAlertAction *addAction = [UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-		wbPicSize *picSize = [wbPicSize sharedPicSize];
-
-		NSString *sizeOriURL = [thumb150whURL stringByReplacingOccurrencesOfString:picSize.size150wh withString:picSize.sizeOri];
+		NSString *sizeOriURL;
+		if (self.exchangeStringFromThumbnailURL&&self.exchangeStringToOriSizeURL) {
+			sizeOriURL = [thumb150whURL stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToOriSizeURL];
+		}else{
+			sizeOriURL = thumb150whURL;
+		}
+		
 		[[SDWebImageManager sharedManager] downloadImageWithURL:newURL(sizeOriURL) options:SDWebImageLowPriority|SDWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger expectedSize) {
 			MBProgressHUD *hud = [MBProgressHUD HUDForView:_showingPicView];
 			if(!hud){
@@ -437,31 +513,45 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 
 /** 根据网络状态获取图片尺寸 */
 -(NSString *)getBig_picWiththumbnail_pic:(NSString *)thumbnail_pic{
-	wbPicSize *picSize = [wbPicSize sharedPicSize];
-	NSString *oriURL = [thumbnail_pic stringByReplacingOccurrencesOfString:picSize.size150wh withString:picSize.sizeOri];
+	if (!self.exchangeStringFromThumbnailURL)
+		return thumbnail_pic;
+	
+	NSString *oriURL;
+	if (self.exchangeStringToOriSizeURL) {
+		oriURL = [thumbnail_pic stringByReplacingOccurrencesOfString:_exchangeStringFromThumbnailURL withString:_exchangeStringToOriSizeURL];
+		
+	}
 	
 	if([[SDImageCache sharedImageCache] imageFromDiskCacheForKey:oriURL])
 		return oriURL;
 	
 	
-#pragma mark - 这里 AFN 出错,检测网络状态一直是-1:unknown 所以改用Reachability
 	newLog(@"网络状态%ld",(long)[[Reachability reachabilityForInternetConnection] currentReachabilityStatus]);
-	if (ReachableViaWiFi ==
-		[[Reachability reachabilityForInternetConnection] currentReachabilityStatus]) {
-		newLog(@"是 wifi !!!");
-		//lagre 太大,换成mw690是水平9p
-		return [thumbnail_pic stringByReplacingOccurrencesOfString:picSize.size150wh withString:picSize.size690w];
-	}else{//没有 wifi 就加载优化的大图
-		newLog(@"不是 WIFI !!!");
-		if ([[thumbnail_pic pathExtension] isEqualToString:@"gif"]) {
-			//中图可能加载的 gif 不完整不能播放,所以统一改成 large 版
-			return [thumbnail_pic stringByReplacingOccurrencesOfString:picSize.size150wh withString:picSize.size690w];
-		}else{
-			return [thumbnail_pic stringByReplacingOccurrencesOfString:picSize.size150wh withString:picSize.size440s];
+	
+	
+	if (ReachableViaWiFi == [[Reachability reachabilityForInternetConnection] currentReachabilityStatus]){
+		newLog(@"是 WIFI !!!");
+		if (self.exchangeStringToWIFIBigSizeURL) {
+			return [thumbnail_pic stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToWIFIBigSizeURL];
 		}
+		if(self.exchangeStringToOriSizeURL){
+			return [thumbnail_pic stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToOriSizeURL];
+		}
+	}else{
+		//没有 wifi 就加载优化的大图
+		newLog(@"不是 WIFI !!!");
+		if (self.exchangeStringToGifURL) {
+			if ([[thumbnail_pic pathExtension] isEqualToString:@"gif"]) {
+				//中图可能加载的 gif 不完整不能播放,所以统一改成 large 版
+				return [thumbnail_pic stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL  withString:self.exchangeStringToGifURL];
+			}
+			return [thumbnail_pic stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToMobileBigSizeURL];
+		}
+
 	}
+	return thumbnail_pic;
 }
 @end
-
-
-
+	
+	
+	
