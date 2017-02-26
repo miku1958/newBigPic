@@ -45,5 +45,5 @@
 
 #pragma mark - 设置图片方法
 /** 把多图的 view(这个 view 只装了需要显示的UIImageViews) 整个一起发过来 */
--(void)setPicsView:(UIView *)picsView showIndex:(NSUInteger)idx;
+-(void)setPicView:(UIImageView *)picView;
 @end

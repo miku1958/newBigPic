@@ -119,7 +119,12 @@
 }
 
 
--(void)setPicsView:(UIView *)picsView showIndex:(NSUInteger)idx{
+-(void)setPicView:(UIImageView *)picView{
+	[picSuperView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+		if (obj == picView) {
+			showingIndex = idx;
+		}
+	}];
 
     UIWindow *win = newKeywindow;
     win.windowLevel = UIWindowLevelAlert;
@@ -127,25 +132,26 @@
     [UIView animateWithDuration:self.animationTime animations:^{
         _bgView.alpha = self.BGAlpha;
     }];
-    showingIndex = idx;
-    picSuperView = picsView;
+
+    picSuperView = picView.superview;
     picCount= 0;
-    [picsView.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
-        if(!imageView.isHidden)
-            picCount++;
+    [picSuperView.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
+		if ([imageView.class isSubclassOfClass:[UIImageView class]])
+			if(!imageView.isHidden)
+				picCount++;
     }];
     self.picContentView.contentSize = (CGSize){screenWidth*picCount, screenHeight};
     currentOffset = screenWidth*showingIndex;
     self.picContentView.contentOffset = CGPointMake(currentOffset, 0);
 //    lastPreIsRight=0;
 //    preLoadViewHasLoad =NO;
-    [self.showingView setPicsView:picsView showIndex:idx];
+    [self.showingView setPicView:picView];
     _showingView.x = screenWidth*showingIndex;
     
-    [self.preLoadLeftView preLoadPicsView:picsView showIndex:showingIndex-1];
+    [self.preLoadLeftView preLoadPicView:picView preloadType:newPicPreloadSideLeft];
     _preLoadLeftView.x =screenWidth*(showingIndex-1);
     
-    [self.preLoadRightView preLoadPicsView:picsView showIndex:showingIndex+1];
+    [self.preLoadRightView preLoadPicView:picView preloadType:newPicPreloadSideRight];
     _preLoadRightView.x =screenWidth*(showingIndex+1);
     
     
@@ -224,7 +230,7 @@
             _showingView = _preLoadLeftView;
             _preLoadLeftView = _preLoadRightView;
             _preLoadRightView = temp;
-            [_preLoadLeftView preLoadPicsView:picSuperView showIndex:showingIndex-1];
+            [_preLoadLeftView preLoadPicView:picSuperView.subviews[showingIndex] preloadType:newPicPreloadSideLeft];
             _preLoadLeftView.x =screenWidth*(showingIndex-1);
         }
     if (showingIndex<picCount-1)//显示右边
@@ -233,7 +239,7 @@
             _showingView = _preLoadRightView;
             _preLoadRightView = _preLoadLeftView;
             _preLoadLeftView = temp;
-            [_preLoadRightView preLoadPicsView:picSuperView showIndex:showingIndex+1];
+            [_preLoadRightView preLoadPicView:picSuperView.subviews[showingIndex] preloadType:newPicPreloadSideRight];
             _preLoadRightView.x =screenWidth*(showingIndex+1);
         }
     

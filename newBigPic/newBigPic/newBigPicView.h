@@ -5,6 +5,11 @@
 //  Created by mikun on 2017/2/24.
 //  Copyright © 2017年 mikun. All rights reserved.
 //
+/*
+ 本框架读取类似九宫格的view的时候读取的是 view.subviews，
+ 如果是使用 StroyBoard设置缩略图的 imageview，是通过其他imageview复制过来的，
+ 会导致父view.subviews只有一开始手动拖进去的控件，这个是 StroyBoard 的 bug
+ */
 
 #import <UIKit/UIKit.h>
 
@@ -83,13 +88,22 @@
 
 #pragma mark - 设置图片方法
 /** 把图片的 superview 和需要显示的图片在这个 subviews 中的 index 整个一起发过来 ,并且从原始位置放大*/
--(void)setPicsView:(UIView *)picsView showIndex:(NSUInteger)idx;
+-(void)setPicView:(UIImageView *)picView;
+
+
+typedef NS_ENUM(NSInteger, newPicPreloadSide) {
+	newPicPreloadSideSelf    =0,
+	newPicPreloadSideLeft   =1,
+	newPicPreloadSideRight    =2
+};
 
 /** 把图片的 superview 和需要显示的图片在这个 subviews 中的 index 整个一起发过来 ,没有动画,直接显示*/
--(void)preLoadPicsView:(UIView *)picsView showIndex:(NSInteger)idx;
+-(void)preLoadPicView:(UIImageView *)picView preloadType:(newPicPreloadSide)side;
 
 /** 把需要显示的图片 url 发过来,并且指定消失的时候回到哪里 ,打开的时候先黑屏加载完再渐隐出来,消失的时候回到指定的地方*/
 -(void)setPicURL:(NSString *)URL returnView:(UIView *)returnView returnRect:(CGRect)returnRect;
 @end
+
+
 
 

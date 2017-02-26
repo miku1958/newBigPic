@@ -161,10 +161,7 @@
 
 +(newBigPicView *)bigPicture{
 	newBigPicView *bigPicView = [[newBigPicView alloc]init];
-	bigPicView.frame = newKeywindow.frame;
 	[bigPicView baseSetting];
-	newLog(@"bigPicView:%@",bigPicView);
-	bigPicView.clipsToBounds = YES;
 	return bigPicView;
 }
 
@@ -177,8 +174,10 @@
 	scalePreventLock =0;
 	opening = YES;
 	shouldRecover = NO;
-	
+	self.frame = newKeywindow.frame;
+	self.clipsToBounds = YES;
 	self.backgroundColor = [UIColor clearColor];
+	[self addSubview:self.contentView];
 	
 }
 -(UIScrollView *)contentView{
@@ -203,7 +202,6 @@
 		[_contentView setBounces:NO ];
 		[_contentView setAlwaysBounceVertical:YES];
 		
-		[self addSubview:_contentView];
 	}
 	return _contentView;
 }
@@ -216,12 +214,12 @@
 		_showingPicView.contentMode = UIViewContentModeScaleAspectFill;
 		_showingPicView.layer.masksToBounds = YES;
 		_showingPicView.userInteractionEnabled = YES;
-		[self.contentView addSubview:_showingPicView];
+		[_contentView addSubview:_showingPicView];
 	}
 	return _showingPicView;
 }
 
--(void)setPicsView:(UIView *)picsView showIndex:(NSUInteger)idx{
+-(void)setPicView:(UIImageView *)picView{
 	if (!self.delegate) {
 		UIBlurEffect * blur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
 		_bgView = [[UIVisualEffectView alloc]initWithEffect:blur];
@@ -229,16 +227,12 @@
 		_bgView.alpha = 0;//改变 alpha 可以改变模糊度
 		[self addSubview:_bgView];
 	}
-	if(!picCount)
-		[picsView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-			if (!obj.isHidden) {
-				picCount++;
-			}
-		}];
+
 	
-	NSString *picURL = [self setRatioAndGetPicURLWithPicsView:picsView showIndex:idx];
-	
-	CGRect oriFrameOfBigPicView = [picSuperView convertRect:picsView.subviews[idx].frame toView:nil];
+	NSString *picURL = [self setRatioAndGetPicURLWithPicView:picView];
+	if (!picURL) return;
+
+	CGRect oriFrameOfBigPicView = [picSuperView convertRect:picView.frame toView:nil];
 	_showingPicView.frame= oriFrameOfBigPicView;
 	[UIView animateWithDuration:self.animationTime animations:^{
 		_bgView.alpha = self.BGAlpha;
@@ -260,19 +254,51 @@
 	[self getLargePicWithURL:picURL];
 }
 
--(void)preLoadPicsView:(UIView *)picsView showIndex:(NSInteger)idx{
-	_showingPicView.alpha = 0;
-	if(!picCount)
-		[picsView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-			if (!obj.isHidden) {
-				picCount++;
-			}
-		}];
-	if (0>idx||idx>=picCount){
-		_showingPicView.image = nil;
-		return;
+-(void)preLoadPicView:(UIImageView *)picView preloadType:(newPicPreloadSide)side{
+	
+#pragma mark - 获取预加载的 picview
+	NSArray<__kindof UIView *> *subs = picView.superview.subviews;
+	int i = 0;
+	int j = -1;
+	for (; i<subs.count;i++) {
+		__kindof UIView * _Nonnull obj  = subs[i];
+		if (obj == picView) {
+			j=i;
+			break;
+		}
 	}
-	NSString *picURL = [self setRatioAndGetPicURLWithPicsView:picsView showIndex:idx];
+	if (j<0)  return;
+
+	switch (side) {
+		case newPicPreloadSideLeft:
+			while (--j>0) {
+				if ([subs[j].class isSubclassOfClass:[UIImageView class]]){
+					picView =subs[j];
+					break;
+				}
+			}
+			break;
+		case newPicPreloadSideRight:
+			while (++j<subs.count) {
+				if ([subs[j].class isSubclassOfClass:[UIImageView class]]){
+					picView =subs[j];
+					break;
+				}
+			}
+			break;
+		default:
+			break;
+	}
+	
+	
+
+	_showingPicView.alpha = 0;
+
+
+	NSString *picURL = [self setRatioAndGetPicURLWithPicView:picView];
+	
+	if (!picURL) return;
+	
 	_contentView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
 	if (1<=picRatio) {//如果是竖立的图片:
 		_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
@@ -295,10 +321,29 @@
 	
 }
 
--(NSString *)setRatioAndGetPicURLWithPicsView:(UIView *)picsView showIndex:(NSUInteger)idx{
-	showingIndex = idx;
-	picSuperView = picsView;
-	UIImageView *showPicView = picSuperView.subviews[idx];
+-(NSString *)setRatioAndGetPicURLWithPicView:(UIImageView *)picView{
+	picSuperView = picView.superview;
+	showingIndex = -1;
+	[picSuperView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+		if (obj == picView) {
+			showingIndex = idx;
+		}
+	}];
+	
+	if(!picCount)
+		[picView.superview.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
+			if ([imageView.class isSubclassOfClass:[UIImageView class]])
+				if(!imageView.isHidden)
+					picCount++;
+		}];
+	
+	if (0>showingIndex||showingIndex>=picCount){
+		_showingPicView.image = nil;
+		return nil;
+	}
+
+	
+	UIImageView *showPicView = picSuperView.subviews[showingIndex];
 	self.showingPicView.image = showPicView.image;
 	screenWidth =newScreenWidth;
 	screenHeight = newScreenHeight;
