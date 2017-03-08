@@ -120,6 +120,8 @@
 
 
 -(void)setPicView:(UIImageView *)picView{
+	picSuperView = picView.superview;
+	
 	[picSuperView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
 		if (obj == picView) {
 			showingIndex = idx;
@@ -133,7 +135,7 @@
         _bgView.alpha = self.BGAlpha;
     }];
 
-    picSuperView = picView.superview;
+
     picCount= 0;
     [picSuperView.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
 		if ([imageView.class isSubclassOfClass:[UIImageView class]])
@@ -150,7 +152,8 @@
     
     [self.preLoadLeftView preLoadPicView:picView preloadType:newPicPreloadSideLeft];
     _preLoadLeftView.x =screenWidth*(showingIndex-1);
-    
+	
+	
     [self.preLoadRightView preLoadPicView:picView preloadType:newPicPreloadSideRight];
     _preLoadRightView.x =screenWidth*(showingIndex+1);
     

@@ -19,6 +19,10 @@
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
+
+}
+
+-(void)viewDidAppear:(BOOL)animated{
 	NSString *path = [[NSBundle mainBundle] pathForResource:@"picURLs.plist" ofType:nil];
 	__block NSArray<NSString *> *urls = [NSArray arrayWithContentsOfFile:path];
 	__block int i=0;
@@ -29,7 +33,6 @@
 	}];
 }
 
-
 - (void)didReceiveMemoryWarning {
 	[super didReceiveMemoryWarning];
 	// Dispose of any resources that can be recreated.
@@ -39,7 +42,13 @@
 	
 	newBigPicViewGroup *bigPicViewGroup = [newBigPicViewGroup bigPictureGroup];
 	
-	[bigPicViewGroup setPicView:tap.view];
+	bigPicViewGroup.exchangeStringFromThumbnailURL = @"thumb150";
+	
+	bigPicViewGroup.exchangeStringToOriSizeURL = @"large";
+	
+	bigPicViewGroup.OptimizeDisplayOfLandscapePic = YES;
+	
+	[bigPicViewGroup setPicView:(UIImageView *)tap.view];
 	
 	
 }

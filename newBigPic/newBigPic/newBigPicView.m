@@ -135,6 +135,15 @@
 	return _exchangeStringToGifURL;
 }
 
+-(BOOL)OptimizeDisplayOfLandscapePic{
+	if (!_OptimizeDisplayOfLandscapePic) {
+		if (self.delegate) {
+			_OptimizeDisplayOfLandscapePic = [self.delegate OptimizeDisplayOfLandscapePic];
+		}
+	}
+	return _OptimizeDisplayOfLandscapePic;
+}
+
 
 -(CGFloat)animationTime{
 	if (!_animationTime) {
@@ -185,7 +194,7 @@
 		_contentView = [[UIScrollView alloc]initWithFrame:self.bounds];
 		_contentView.delegate = self;
 		UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)];
-		tap.delegate = self;
+//		tap.delegate = self;
 		[_contentView addGestureRecognizer:tap];
 		
 		UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapView:)];
@@ -230,16 +239,14 @@
 
 	
 	NSString *picURL = [self setRatioAndGetPicURLWithPicView:picView];
-	if (!picURL) return;
+
 
 	CGRect oriFrameOfBigPicView = [picSuperView convertRect:picView.frame toView:nil];
 	_showingPicView.frame= oriFrameOfBigPicView;
 	[UIView animateWithDuration:self.animationTime animations:^{
 		_bgView.alpha = self.BGAlpha;
-		if (1<=picRatio) {//如果是竖立的图片:
-			_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
-		}else{
-			
+		
+		if(self.OptimizeDisplayOfLandscapePic&&1>picRatio){
 			if (0.5<=picRatio){
 				_showingPicView.frame = (CGRect){{(screenWidth/picRatio-screenWidth)/2, (screenHeight-screenWidth)/2}, screenWidth, screenWidth};
 			}else{
@@ -247,16 +254,22 @@
 				CGFloat picH = picW*picRatio;
 				_showingPicView.frame = (CGRect){{(picH-screenWidth)/2+(picW-picH), (screenHeight-picH)/2}, picH, picH};
 			}
+		}else{
+			_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
 		}
+	
+		
 	} completion:^(BOOL finished) {
 		newKeywindow.windowLevel = UIWindowLevelAlert;
 	}];
-	[self getLargePicWithURL:picURL];
+	if (picURL) {
+		[self getLargePicWithURL:picURL];
+	}
 }
 
+#pragma mark - 获取预加载的 picview
 -(void)preLoadPicView:(UIImageView *)picView preloadType:(newPicPreloadSide)side{
 	
-#pragma mark - 获取预加载的 picview
 	NSArray<__kindof UIView *> *subs = picView.superview.subviews;
 	int i = 0;
 	int j = -1;
@@ -267,23 +280,55 @@
 			break;
 		}
 	}
-	if (j<0)  return;
+
+	_showingPicView.alpha = 0;
+	
+	
+	NSString *picURL;
+	
+
+	if(!picCount){
+		[picView.superview.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
+			if ([imageView.class isSubclassOfClass:[UIImageView class]])
+				if(!imageView.isHidden)
+					picCount++;
+		}];
+	}
 
 	switch (side) {
 		case newPicPreloadSideLeft:
-			while (--j>0) {
+			showingIndex = showingIndex -1;
+			j = j-1;
+			
+			if (j<0) {
+				return;
+			}
+			while (j>=0) {
 				if ([subs[j].class isSubclassOfClass:[UIImageView class]]){
-					picView =subs[j];
+					UIImageView *preloadImView =subs[j];
+					_showingPicView.image =preloadImView.image;
+					picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
 					break;
 				}
+				j = j-1;
 			}
 			break;
 		case newPicPreloadSideRight:
-			while (++j<subs.count) {
+			showingIndex = showingIndex + 1;
+			j = j+1;
+			
+			if (j>=picCount) {
+				return;
+			}
+			
+			while (j<=picCount) {
 				if ([subs[j].class isSubclassOfClass:[UIImageView class]]){
-					picView =subs[j];
+					UIImageView *preloadImView =subs[j];
+					_showingPicView.image =preloadImView.image;
+					picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
 					break;
 				}
+				j = j+1;
 			}
 			break;
 		default:
@@ -292,29 +337,28 @@
 	
 	
 
-	_showingPicView.alpha = 0;
 
-
-	NSString *picURL = [self setRatioAndGetPicURLWithPicView:picView];
-	
-	if (!picURL) return;
-	
 	_contentView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-	if (1<=picRatio) {//如果是竖立的图片:
-		_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
-	}else{
+
+		if(self.OptimizeDisplayOfLandscapePic&&1>picRatio){
+			CGFloat picH = screenWidth*picRatio;
+			_showingPicView.frame = (CGRect){{(screenWidth-picH)/2, (screenHeight-picH)/2}, picH, picH};
+		}else{
+			_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
+		}
 		
-		CGFloat picH = screenWidth*picRatio;
-		
-		_showingPicView.frame = (CGRect){{(screenWidth-picH)/2, (screenHeight-picH)/2}, picH, picH};
-		
-	}
+	
 	[UIView animateWithDuration:self.animationTime animations:^{
 		_showingPicView.alpha =1;
 	}];
 	
-	[self getLargePicWithURL:picURL];
-	
+	newFrameOfBigPicView = _showingPicView.frame;
+	if (picURL){
+		[self getLargePicWithURL:picURL];
+	}
+	if (!self.superview) {
+		[newKeywindow.rootViewController.view addSubview:self];
+	}
 }
 
 -(void)setPicURL:(NSString *)URL sourceView:(UIView *)sourceView sourceRect:(CGRect)sourceRect{
@@ -330,12 +374,13 @@
 		}
 	}];
 	
-	if(!picCount)
+	if(!picCount){
 		[picView.superview.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
 			if ([imageView.class isSubclassOfClass:[UIImageView class]])
 				if(!imageView.isHidden)
 					picCount++;
 		}];
+	}
 	
 	if (0>showingIndex||showingIndex>=picCount){
 		_showingPicView.image = nil;
@@ -365,6 +410,7 @@
 			if (picSizeHeight) {
 				picRatio = picSizeHeight/picSizeWidth;
 			}
+			
 		}
 	}
 	
@@ -390,25 +436,7 @@
 		CGFloat picSizeWidth = image.size.width;
 		CGFloat picSizeHeight = image.size.height;
 		picRatio = picSizeHeight/picSizeWidth;
-		if (1 <= picRatio) {
-			picVIewScale = 1;
-			//如果是从150p 来的需要调用这个方法调整尺寸
-			CGFloat picH = screenWidth*picRatio;//算出来的高度
-			CGFloat picY = (screenHeight-picH)/2;
-			[UIView animateWithDuration:self.animationTime animations:^{
-				_contentView.contentSize = CGSizeMake(screenWidth, picH);
-				_showingPicView.frame = (CGRect){{0, 0}, screenWidth, picH};
-				_contentView.contentInset = UIEdgeInsetsMake(0>picY?0:picY, 0, 0, 0);
-			}completion:^(BOOL finished) {
-				newFrameOfBigPicView = _showingPicView.frame;
-				opening = NO;
-				picVIewScale = picSizeHeight/screenHeight;
-				zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
-				zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
-				_contentView.minimumZoomScale = zoomMinimumZoomScale;
-				_contentView.maximumZoomScale = zoomMaxmumZoomScale;
-			}];
-		}else{
+		if (self.OptimizeDisplayOfLandscapePic && 1>picRatio) {
 			CGFloat picH = _showingPicView.height;
 			CGFloat picW = picH/picRatio;//算出来的高度
 			[UIView animateWithDuration:self.animationTime animations:^{
@@ -432,12 +460,28 @@
 				
 				opening = NO;
 			}];
+		}else{
+			picVIewScale = 1;
+			//如果是从150p 来的需要调用这个方法调整尺寸
+			CGFloat picH = screenWidth*picRatio;//算出来的高度
+			CGFloat picY = (screenHeight-picH)/2;
+			[UIView animateWithDuration:self.animationTime animations:^{
+				_contentView.contentSize = CGSizeMake(screenWidth, picH);
+				_showingPicView.frame = (CGRect){{0, 0}, screenWidth, picH};
+				_contentView.contentInset = UIEdgeInsetsMake(0>picY?0:picY, 0, 0, 0);
+			}completion:^(BOOL finished) {
+				newFrameOfBigPicView = _showingPicView.frame;
+				opening = NO;
+				picVIewScale = picSizeHeight/screenHeight;
+				zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
+				zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
+				_contentView.minimumZoomScale = zoomMinimumZoomScale;
+				_contentView.maximumZoomScale = zoomMaxmumZoomScale;
+			}];
 		}
 	}];
 	
-	if (!self.superview) {
-		[newKeywindow.rootViewController.view addSubview:self];
-	}
+
 }
 
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
@@ -559,14 +603,13 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 /** 根据网络状态获取图片尺寸 */
 -(NSString *)getBig_picWiththumbnail_pic:(NSString *)thumbnail_pic{
 	if (!self.exchangeStringFromThumbnailURL)
-		return thumbnail_pic;
-	
+		return nil;
 	NSString *oriURL;
 	if (self.exchangeStringToOriSizeURL) {
 		oriURL = [thumbnail_pic stringByReplacingOccurrencesOfString:_exchangeStringFromThumbnailURL withString:_exchangeStringToOriSizeURL];
 		
 	}
-	
+
 	if([[SDImageCache sharedImageCache] imageFromDiskCacheForKey:oriURL])
 		return oriURL;
 	

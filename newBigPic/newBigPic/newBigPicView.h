@@ -42,6 +42,9 @@
 /** 如果移动网络打开的大图不能播放（像新浪微博的就是这样，gif 需要原图的地址才行），需要设置这个 */
 @property (nonatomic,strong)NSString *exchangeStringToGifURL;
 
+/** 如果设置为 YES,显示横向图片的时候会稍微放大点,高度和屏幕宽度一样,方便阅读 */
+@property (nonatomic,assign)BOOL OptimizeDisplayOfLandscapePic;
+
 @optional
 
 - (void)dismissBigPicViews;
@@ -81,10 +84,14 @@
 
 /** 如果移动网络打开的大图不能播放（像新浪微博的就是这样，gif 需要原图的地址才行），需要设置这个 */
 @property (nonatomic,strong)NSString *exchangeStringToGifURL;
+
+/** 如果设置为 YES,显示横向图片的时候会稍微放大点,高度和屏幕宽度一样,方便阅读 */
+@property (nonatomic,assign)BOOL OptimizeDisplayOfLandscapePic;
+
+
 #pragma mark - 初始化方法
 /** 初始化方法,不要把这个 view 加到自己的 view 上面去!! */
 +(newBigPicView *)bigPicture;
-
 
 #pragma mark - 设置图片方法
 /** 把图片的 superview 和需要显示的图片在这个 subviews 中的 index 整个一起发过来 ,并且从原始位置放大*/

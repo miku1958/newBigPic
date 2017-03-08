@@ -38,10 +38,12 @@
 /** 如果移动网络打开的大图不能播放（像新浪微博的就是这样，gif 需要原图的地址才行），需要设置这个 */
 @property (nonatomic,strong)NSString *exchangeStringToGifURL;
 
+/** 如果设置为 YES,显示横向图片的时候会稍微放大点,高度和屏幕宽度一样,方便阅读 */
+@property (nonatomic,assign)BOOL OptimizeDisplayOfLandscapePic;
+
 #pragma mark - 初始化方法
 /** 初始化方法,不要把这个 view 加到自己的 view 上面去!! */
 +(newBigPicViewGroup *)bigPictureGroup;
-
 
 #pragma mark - 设置图片方法
 /** 把多图的 view(这个 view 只装了需要显示的UIImageViews) 整个一起发过来 */
