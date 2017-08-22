@@ -106,7 +106,7 @@
     }
     return _preLoadRightView;
 }
-//TODO:	要把这里换成collectionview以免滚太快出错
+//TODO:	要把这里换成collectionview以免滚太快导致图形显示不出来
 -(UIScrollView *)picContentView{
     if (!_picContentView) {
         _picContentView = [[UIScrollView alloc]init];

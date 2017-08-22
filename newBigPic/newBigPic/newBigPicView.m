@@ -15,7 +15,7 @@
 
 #import "UIImageView+newWebImage.h"
 
-
+//FIXME:	在图片分辨率和手机分辨率刚刚好的情况下,会不能缩放
 
 
 @interface newBigPicView()<UIGestureRecognizerDelegate,UIScrollViewDelegate>{
@@ -508,6 +508,7 @@
  *  让 bigpicview 消失
  */
 -(void)dismissBigPicView{
+    //FIXME:	在iOS10会在动画快执行结束的时候突然没了
 	[UIImage cancelAllDownload];
 	[MBProgressHUD hideHUDForView:self];
 	newLog(@"showingIndex:%ld",(long)showingIndex);
