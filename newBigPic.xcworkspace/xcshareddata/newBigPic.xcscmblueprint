@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "0A6646E8283F5E4602155555818B7EF40B05AA20",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "DFF1364AE2115C6A35C501EE4EE75B7B420E2946" : 9223372036854775807,
+    "0A6646E8283F5E4602155555818B7EF40B05AA20" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "44BFB7D5-8CC2-4AF1-8E20-5839C84DC61F",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "DFF1364AE2115C6A35C501EE4EE75B7B420E2946" : "newWebImage\/",
+    "0A6646E8283F5E4602155555818B7EF40B05AA20" : "newBigPic\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "newBigPic",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "newBigPic.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/miku1958\/newBigPic.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "0A6646E8283F5E4602155555818B7EF40B05AA20"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/git.oschina.net\/miku1958\/newwebimage.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "DFF1364AE2115C6A35C501EE4EE75B7B420E2946"
+    }
+  ]
+}

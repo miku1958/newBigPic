@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "newBigPicView.h"
 
-@interface newBigPicViewGroup : UIView
+@interface newBigPicViewGroup : UIView<newBigPicViewDelegate>
 
 #pragma mark - 公用属性
 @property (nonatomic,assign)CGFloat animationTime;
@@ -39,7 +40,7 @@
 @property (nonatomic,strong)NSString *exchangeStringToGifURL;
 
 /** 如果设置为 YES,显示横向图片的时候会稍微放大点,高度和屏幕宽度一样,方便阅读 */
-@property (nonatomic,assign)BOOL OptimizeDisplayOfLandscapePic;
+@property (nonatomic,assign)OptimizeLandscapeDisplayType OptimizeDisplayOfLandscapePic;
 
 #pragma mark - 初始化方法
 /** 初始化方法,不要把这个 view 加到自己的 view 上面去!! */

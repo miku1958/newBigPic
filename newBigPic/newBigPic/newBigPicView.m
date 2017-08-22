@@ -11,16 +11,9 @@
 #import "Reachability.h"
 #import "MBProgressHUD+MJ.h"
 #import "predefine.h"
-#import "SDImageCache.h"
-#import "SDWebImageManager.h"
-#import "UIImageView+WebCache.h"
 
-/*开发日志
- 尝试使用 collectionview,无法实现点开图片缩放的效果,会导致线程阻塞(更新,缩放效果靠调整图片 frame 而不是整个 view 可以实现)
- 尝试使用 scrollview 实现切换多图的效果,scrollview 会拦截缩放时的 touchbegan 方法,导致缩放的锚点获取不了
- 之所以不用 scrollview 来实现缩放是因为 scrollview 的缩放是靠 contextview 来实现的,不能实现横图的
- */
 
+#import "UIImageView+newWebImage.h"
 
 
 
@@ -135,7 +128,7 @@
 	return _exchangeStringToGifURL;
 }
 
--(BOOL)OptimizeDisplayOfLandscapePic{
+-(OptimizeLandscapeDisplayType)OptimizeDisplayOfLandscapePic{
 	if (!_OptimizeDisplayOfLandscapePic) {
 		if (self.delegate) {
 			_OptimizeDisplayOfLandscapePic = [self.delegate OptimizeDisplayOfLandscapePic];
@@ -246,7 +239,8 @@
 	[UIView animateWithDuration:self.animationTime animations:^{
 		_bgView.alpha = self.BGAlpha;
 		
-		if(self.OptimizeDisplayOfLandscapePic&&1>picRatio){
+		if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
+           1>picRatio){
 			if (0.5<=picRatio){
 				_showingPicView.frame = (CGRect){{(screenWidth/picRatio-screenWidth)/2, (screenHeight-screenWidth)/2}, screenWidth, screenWidth};
 			}else{
@@ -340,7 +334,8 @@
 
 	_contentView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
 
-		if(self.OptimizeDisplayOfLandscapePic&&1>picRatio){
+		if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
+           1>picRatio){
 			CGFloat picH = screenWidth*picRatio;
 			_showingPicView.frame = (CGRect){{(screenWidth-picH)/2, (screenHeight-picH)/2}, picH, picH};
 		}else{
@@ -393,7 +388,7 @@
 	screenWidth =newScreenWidth;
 	screenHeight = newScreenHeight;
 	
-	thumb150whURL = showPicView.sd_imageURL.absoluteString;
+	thumb150whURL = showPicView.newImageURL.absoluteString;
 	NSString *thumb120bURL;
 	if (self.picRatio.x) {
 		picRatio =self.picRatio.y/self.picRatio.x;
@@ -402,7 +397,7 @@
 		if (self.exchangeStringFromThumbnailURL&&self.exchangeStringToRatioURL) {
 			thumb120bURL = [thumb150whURL stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToRatioURL];
 			
-			UIImage *image = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:thumb120bURL];
+			UIImage *image = [UIImage newImageFromDiskCacheForKey:thumb120bURL];
 			
 			//获取120p 的缩略图获得图片尺寸比例
 			CGFloat picSizeWidth = image.size.width;
@@ -418,70 +413,81 @@
 }
 
 -(void)getLargePicWithURL:(NSString *)picURL{
-	
-	[[SDWebImageManager sharedManager] downloadImageWithURL:newURL(picURL) options:SDWebImageLowPriority|SDWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-		MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
-		
-		if(!hud){
-			hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
-			[hud.backgroundView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
-			return ;
-		}
-		NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/expectedSize)];
-		hud.label.text =progress;
-		
-	} completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-		[MBProgressHUD hideHUDForView:self];
-		_showingPicView.image = image;
-		CGFloat picSizeWidth = image.size.width;
-		CGFloat picSizeHeight = image.size.height;
-		picRatio = picSizeHeight/picSizeWidth;
-		if (self.OptimizeDisplayOfLandscapePic && 1>picRatio) {
-			CGFloat picH = _showingPicView.height;
-			CGFloat picW = picH/picRatio;//算出来的高度
-			[UIView animateWithDuration:self.animationTime animations:^{
-				_contentView.contentSize = CGSizeMake(picW, picH);
-				//如果不把设置 contentsize 放这里,这个动画结束会导致位置图片高了一点
-				//原因是因为线程关系,animate 的completion 会在外层的completion 结束后再运行
-				_showingPicView.frame = (CGRect){{0, 0}, picW, picH};
-				_contentView.contentInset = UIEdgeInsetsMake((screenHeight-picH)/2, 0, 0, 0);
-			}completion:^(BOOL finished) {
-				picVIewScale = picSizeWidth/screenWidth;
-				
-				zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
-				zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
-				
-				
-				_contentView.minimumZoomScale = zoomMinimumZoomScale;
-				_contentView.maximumZoomScale = zoomMaxmumZoomScale;
-				
-				CGFloat frameHeight = screenWidth*picRatio;
-				newFrameOfBigPicView = (CGRect){{0, 0}, screenWidth, frameHeight};
-				
-				opening = NO;
-			}];
-		}else{
-			picVIewScale = 1;
-			//如果是从150p 来的需要调用这个方法调整尺寸
-			CGFloat picH = screenWidth*picRatio;//算出来的高度
-			CGFloat picY = (screenHeight-picH)/2;
-			[UIView animateWithDuration:self.animationTime animations:^{
-				_contentView.contentSize = CGSizeMake(screenWidth, picH);
-				_showingPicView.frame = (CGRect){{0, 0}, screenWidth, picH};
-				_contentView.contentInset = UIEdgeInsetsMake(0>picY?0:picY, 0, 0, 0);
-			}completion:^(BOOL finished) {
-				newFrameOfBigPicView = _showingPicView.frame;
-				opening = NO;
-				picVIewScale = picSizeHeight/screenHeight;
-				zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
-				zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
-				_contentView.minimumZoomScale = zoomMinimumZoomScale;
-				_contentView.maximumZoomScale = zoomMaxmumZoomScale;
-			}];
-		}
-	}];
+
+    [UIImage downloadImageWithURL:picURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
+            
+            if(!hud){
+                hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
+                [hud.backgroundView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
+                return ;
+            }
+            NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/totalSize)];
+            hud.label.text =progress;
+        });
+    } completed:^(UIImage * image, NSData * data, NSError * error, UIImage *__autoreleasing *replaceSaveingImage) {
+        [self showLargeImage:image];
+    }];
 	
 
+}
+
+- (void)showLargeImage:(UIImage *)image{
+    if (!image) {
+        return ;
+        //TODO:	弹出提示
+    }
+    [MBProgressHUD hideHUDForView:self];
+    _showingPicView.image = image;
+
+    CGFloat picSizeWidth = image.size.width;
+    CGFloat picSizeHeight = image.size.height;
+    picRatio = picSizeHeight/picSizeWidth;
+    if (self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
+        1>picRatio) {
+        CGFloat picH = _showingPicView.height;
+        CGFloat picW = picH/picRatio;//算出来的高度
+        [UIView animateWithDuration:self.animationTime animations:^{
+            _contentView.contentSize = CGSizeMake(picW, picH);
+            //如果不把设置 contentsize 放这里,这个动画结束会导致位置图片高了一点
+            //原因是因为线程关系,animate 的completion 会在外层的completion 结束后再运行
+            _showingPicView.frame = (CGRect){{0, 0}, picW, picH};
+            _contentView.contentInset = UIEdgeInsetsMake((screenHeight-picH)/2, 0, 0, 0);
+        }completion:^(BOOL finished) {
+            picVIewScale = picSizeWidth/screenWidth;
+            
+            zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
+            zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
+            
+            
+            _contentView.minimumZoomScale = zoomMinimumZoomScale;
+            _contentView.maximumZoomScale = zoomMaxmumZoomScale;
+            
+            CGFloat frameHeight = screenWidth*picRatio;
+            newFrameOfBigPicView = (CGRect){{0, 0}, screenWidth, frameHeight};
+            
+            opening = NO;
+        }];
+    }else{
+        picVIewScale = 1;
+        //如果是从150p 来的需要调用这个方法调整尺寸
+        CGFloat picH = screenWidth*picRatio;//算出来的高度
+        CGFloat picY = (screenHeight-picH)/2;
+        [UIView animateWithDuration:self.animationTime animations:^{
+            _contentView.contentSize = CGSizeMake(screenWidth, picH);
+            _showingPicView.frame = (CGRect){{0, 0}, screenWidth, picH};
+            _contentView.contentInset = UIEdgeInsetsMake(0>picY?0:picY, 0, 0, 0);
+        }completion:^(BOOL finished) {
+            newFrameOfBigPicView = _showingPicView.frame;
+            opening = NO;
+            picVIewScale = picSizeHeight/screenHeight;
+            zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
+            zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
+            _contentView.minimumZoomScale = zoomMinimumZoomScale;
+            _contentView.maximumZoomScale = zoomMaxmumZoomScale;
+        }];
+    }
 }
 
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
@@ -502,7 +508,7 @@
  *  让 bigpicview 消失
  */
 -(void)dismissBigPicView{
-	[[SDWebImageManager sharedManager] cancelAll];
+	[UIImage cancelAllDownload];
 	[MBProgressHUD hideHUDForView:self];
 	newLog(@"showingIndex:%ld",(long)showingIndex);
 	UIImageView *showPicView = picSuperView.subviews[showingIndex];
@@ -554,21 +560,28 @@
 		}else{
 			sizeOriURL = thumb150whURL;
 		}
-		
-		[[SDWebImageManager sharedManager] downloadImageWithURL:newURL(sizeOriURL) options:SDWebImageLowPriority|SDWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-			MBProgressHUD *hud = [MBProgressHUD HUDForView:_showingPicView];
-			if(!hud){
-				hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
-				[hud addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
-				
-				return ;
-			}
-			NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/expectedSize)];
-			hud.label.text =progress;
-		} completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-			[MBProgressHUD hideHUDForView:self];
-			UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
-		}];
+        
+        [UIImage downloadImageWithURL:sizeOriURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                MBProgressHUD *hud = [MBProgressHUD HUDForView:_showingPicView];
+                if(!hud){
+                    hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
+                    [hud addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
+                    
+                    return ;
+                }
+                NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/totalSize)];
+                hud.label.text =progress;
+            });
+        } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, UIImage *__autoreleasing *replaceSaveingImage) {
+            if (!image) {
+                return ;
+                //TODO:	弹出提示
+            }
+            [MBProgressHUD hideHUDForView:self];
+            UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+        }];
+        
 		
 	}];
 	UIAlertAction *cancelAction = [UIAlertAction
@@ -610,7 +623,7 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 		
 	}
 
-	if([[SDImageCache sharedImageCache] imageFromDiskCacheForKey:oriURL])
+	if([UIImage newImageFromDiskCacheForKey:oriURL])
 		return oriURL;
 	
 	

@@ -15,6 +15,11 @@
 
 #define predictMargin 30
 
+typedef NS_ENUM(NSInteger, OptimizeLandscapeDisplayType) {
+    OptimizeLandscapeDisplayTypeYES    =1,
+    OptimizeLandscapeDisplayTypeNO   =2
+};
+
 /** 这个代理是给newBigPicViewGroup专用的，其他情况不需要用到这个代理 */
 @protocol newBigPicViewDelegate <NSObject>
 
@@ -43,7 +48,7 @@
 @property (nonatomic,strong)NSString *exchangeStringToGifURL;
 
 /** 如果设置为 YES,显示横向图片的时候会稍微放大点,高度和屏幕宽度一样,方便阅读 */
-@property (nonatomic,assign)BOOL OptimizeDisplayOfLandscapePic;
+@property (nonatomic,assign)OptimizeLandscapeDisplayType OptimizeDisplayOfLandscapePic;
 
 @optional
 
@@ -86,7 +91,7 @@
 @property (nonatomic,strong)NSString *exchangeStringToGifURL;
 
 /** 如果设置为 YES,显示横向图片的时候会稍微放大点,高度和屏幕宽度一样,方便阅读 */
-@property (nonatomic,assign)BOOL OptimizeDisplayOfLandscapePic;
+@property (nonatomic,assign)OptimizeLandscapeDisplayType OptimizeDisplayOfLandscapePic;
 
 
 #pragma mark - 初始化方法

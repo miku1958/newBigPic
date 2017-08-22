@@ -10,7 +10,7 @@
 #import "newBigPicView.h"
 #import "predefine.h"
 
-@interface newBigPicViewGroup()<UIScrollViewDelegate,newBigPicViewDelegate>{
+@interface newBigPicViewGroup()<UIScrollViewDelegate>{
     CGFloat screenWidth;//这三个全局变量在baseSetting中设置
     CGFloat screenHeight;
     CGFloat yWhenSameWH;
@@ -106,6 +106,7 @@
     }
     return _preLoadRightView;
 }
+//TODO:	要把这里换成collectionview以免滚太快出错
 -(UIScrollView *)picContentView{
     if (!_picContentView) {
         _picContentView = [[UIScrollView alloc]init];
