@@ -18,7 +18,6 @@
 		FF3E11951E5FDF3C00861941 /* newBigPicViewGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = FF3E11931E5FDF3C00861941 /* newBigPicViewGroup.m */; };
 		FF3E11BA1E5FE3B900861941 /* MBProgressHUD+MJ.m in Sources */ = {isa = PBXBuildFile; fileRef = FF3E11AE1E5FE3B900861941 /* MBProgressHUD+MJ.m */; };
 		FF3E11BC1E5FE3B900861941 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FF3E11B31E5FE3B900861941 /* Reachability.m */; };
-		FF4CB38D1F4C1B3B003BAB54 /* UIImageView+newWebImage.m in Sources */ = {isa = PBXBuildFile; fileRef = FF4CB38C1F4C1B3B003BAB54 /* UIImageView+newWebImage.m */; };
 		FF4CB3901F4C1DF6003BAB54 /* libMBProgressHUD.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF4CB38E1F4C1DF6003BAB54 /* libMBProgressHUD.a */; };
 		FF4CB3911F4C1DF6003BAB54 /* libSDWebImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF4CB38F1F4C1DF6003BAB54 /* libSDWebImage.a */; };
 		FF60A4681F4D689C00C2507B /* picURLs.plist in Resources */ = {isa = PBXBuildFile; fileRef = FF60A4671F4D689C00C2507B /* picURLs.plist */; };
@@ -48,8 +47,6 @@
 		FF3E11B31E5FE3B900861941 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		FF3E11B41E5FE3B900861941 /* shortCutFunc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shortCutFunc.h; sourceTree = "<group>"; };
 		FF3E11B61E5FE3B900861941 /* predefine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = predefine.h; sourceTree = "<group>"; };
-		FF4CB38B1F4C1B3B003BAB54 /* UIImageView+newWebImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImageView+newWebImage.h"; path = "../../../../newWebImage/newWebImage/UIImageView+newWebImage.h"; sourceTree = "<group>"; };
-		FF4CB38C1F4C1B3B003BAB54 /* UIImageView+newWebImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImageView+newWebImage.m"; path = "../../../../newWebImage/newWebImage/UIImageView+newWebImage.m"; sourceTree = "<group>"; };
 		FF4CB38E1F4C1DF6003BAB54 /* libMBProgressHUD.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMBProgressHUD.a; path = "../../Library/Developer/Xcode/DerivedData/newBigPic-bhczghdrdzeoiddbcomiaouazapr/Build/Products/Debug-iphonesimulator/MBProgressHUD/libMBProgressHUD.a"; sourceTree = "<group>"; };
 		FF4CB38F1F4C1DF6003BAB54 /* libSDWebImage.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDWebImage.a; path = "../../Library/Developer/Xcode/DerivedData/newBigPic-bhczghdrdzeoiddbcomiaouazapr/Build/Products/Debug-iphonesimulator/SDWebImage/libSDWebImage.a"; sourceTree = "<group>"; };
 		FF60A4671F4D689C00C2507B /* picURLs.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = picURLs.plist; sourceTree = "<group>"; };
@@ -147,8 +144,6 @@
 		FF3E11A91E5FE3B900861941 /* Lib */ = {
 			isa = PBXGroup;
 			children = (
-				FF4CB38B1F4C1B3B003BAB54 /* UIImageView+newWebImage.h */,
-				FF4CB38C1F4C1B3B003BAB54 /* UIImageView+newWebImage.m */,
 				FF3E11AA1E5FE3B900861941 /* 3rdParty */,
 				FF3E11B51E5FE3B900861941 /* private */,
 			);
@@ -314,7 +309,6 @@
 				FF3E11951E5FDF3C00861941 /* newBigPicViewGroup.m in Sources */,
 				FF3E117D1E5FDF1200861941 /* AppDelegate.m in Sources */,
 				FF3E117A1E5FDF1200861941 /* main.m in Sources */,
-				FF4CB38D1F4C1B3B003BAB54 /* UIImageView+newWebImage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

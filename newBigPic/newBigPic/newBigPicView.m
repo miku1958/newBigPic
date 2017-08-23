@@ -12,7 +12,7 @@
 #import "predefine.h"
 #import <Photos/Photos.h>
 
-#import "UIImageView+newWebImage.h"
+#import "newWebImage.h"
 
 
 //FIXME:	在图片分辨率和手机分辨率刚刚好的情况下,会不能缩放
