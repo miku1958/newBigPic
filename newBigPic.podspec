@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "newBigPic"
-  s.version      = "1.01"
+  s.version      = "1.02"
   s.summary      = "能完美缩放的多图浏览循环利用"
 
   # This description is used to generate tags and improve search results.
@@ -79,7 +79,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/miku1958/newBigPic.git", :tag = >s.version }
+  s.source       = { :git => "https://github.com/miku1958/newBigPic.git", :tag => s.version }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
