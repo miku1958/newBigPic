@@ -8,7 +8,7 @@
 
 #import "newBigPicView.h"
 #import "Reachability.h"
-#import "MBProgressHUD+MJ.h"
+#import "MBProgressHUD.h"
 #import "predefine.h"
 #import <Photos/Photos.h>
 
@@ -320,7 +320,7 @@
 			MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
 			
 			if(!hud){
-				hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
+				hud = [self showMessage:@"正在加载:0%" toView:self];
 				[hud.backgroundView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
 				return ;
 			}
@@ -341,7 +341,7 @@
 		return ;
 		//TODO:	弹出提示
 	}
-	[MBProgressHUD hideHUDForView:self];
+	[MBProgressHUD hideHUDForView:self animated:YES];
 	_showingPicView.image = image;
 	
 	CGFloat picSizeWidth = image.size.width;
@@ -436,7 +436,7 @@
  */
 -(void)dismissBigPicView{
 	[UIImage cancelAllDownload];
-	[MBProgressHUD hideHUDForView:self];
+	[MBProgressHUD hideHUDForView:self animated:YES];
 
 	UIImageView *showPicView = _picSuperView.subviews[_showingIndex];
 	CGRect oriFrameOfBigPicView = [_picSuperView convertRect:showPicView.frame toView:nil];
@@ -520,7 +520,7 @@
 			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 				MBProgressHUD *hud = [MBProgressHUD HUDForView:_showingPicView];
 				if(!hud){
-					hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
+					hud = [self showMessage:@"正在加载:0%" toView:self];
 					[hud addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
 					
 					return ;
@@ -533,7 +533,7 @@
 				return ;
 				//TODO:	弹出提示
 			}
-			[MBProgressHUD hideHUDForView:self];
+			[MBProgressHUD hideHUDForView:self animated:YES];
 			UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
 		}];
 		
@@ -554,10 +554,10 @@
 - (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
 	
 	if (error) {
-		[MBProgressHUD showError:[NSString stringWithFormat:@"保存出错,错误:%@",error] toView:self];
+		[self showError:[NSString stringWithFormat:@"保存出错,错误:%@",error] toView:self];
 		return;
 	}
-	[MBProgressHUD showSuccess:@"保存成功" toView:self];
+	[self showSuccess:@"保存成功" toView:self];
 	
 }
 
@@ -673,6 +673,48 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 		_BGAlpha = _delegate?_delegate.BGAlpha:1;
 	}
 	return _BGAlpha;
+}
+
+#pragma mark - 因为cocoapod的原因所以把MBProgress+MJ的内容搬到这里
+- (MBProgressHUD *)showMessage:(NSString *)message toView:(UIView *)view {
+	if (view == nil) view = [[UIApplication sharedApplication].windows lastObject];
+	// 快速显示一个提示信息
+	MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+	hud.label.text = message;
+	// 隐藏时候从父控件中移除
+	hud.removeFromSuperViewOnHide = YES;
+	// YES代表需要蒙版效果
+	//    hud.dimBackground = YES;
+	return hud;
+}
+
+- (void)show:(NSString *)text icon:(NSString *)icon view:(UIView *)view
+{
+	if (view == nil) view = [[UIApplication sharedApplication].windows lastObject];
+	// 快速显示一个提示信息
+	MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+	hud.label.text = text;
+	// 设置图片
+	hud.customView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"MBProgressHUD.bundle/%@", icon]]];
+	// 再设置模式
+	hud.mode = MBProgressHUDModeCustomView;
+	
+	// 隐藏时候从父控件中移除
+	hud.removeFromSuperViewOnHide = YES;
+	
+	// 1秒之后再消失
+	[hud hideAnimated:YES afterDelay:0.7];
+}
+
+#pragma mark 显示错误信息
+- (void)showError:(NSString *)error toView:(UIView *)view{
+	[self show:error icon:@"error.png" view:view];
+}
+
+
+- (void)showSuccess:(NSString *)success toView:(UIView *)view
+{
+	[self show:success icon:@"success.png" view:view];
 }
 @end
 

@@ -17,7 +17,6 @@
 		FF4CB3901F4C1DF6003BAB54 /* libMBProgressHUD.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF4CB38E1F4C1DF6003BAB54 /* libMBProgressHUD.a */; };
 		FF4CB3911F4C1DF6003BAB54 /* libSDWebImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF4CB38F1F4C1DF6003BAB54 /* libSDWebImage.a */; };
 		FF60A4681F4D689C00C2507B /* picURLs.plist in Resources */ = {isa = PBXBuildFile; fileRef = FF60A4671F4D689C00C2507B /* picURLs.plist */; };
-		FF60A47D1F4D7F8100C2507B /* MBProgressHUD+MJ.m in Sources */ = {isa = PBXBuildFile; fileRef = FF60A4721F4D7F8100C2507B /* MBProgressHUD+MJ.m */; };
 		FF60A47E1F4D7F8100C2507B /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FF60A4751F4D7F8100C2507B /* Reachability.m */; };
 		FF60A47F1F4D7F8100C2507B /* newBigPicView.m in Sources */ = {isa = PBXBuildFile; fileRef = FF60A47A1F4D7F8100C2507B /* newBigPicView.m */; };
 		FF60A4801F4D7F8100C2507B /* newBigPicViewGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = FF60A47C1F4D7F8100C2507B /* newBigPicViewGroup.m */; };
@@ -40,8 +39,6 @@
 		FF4CB38E1F4C1DF6003BAB54 /* libMBProgressHUD.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMBProgressHUD.a; path = "../../Library/Developer/Xcode/DerivedData/newBigPic-bhczghdrdzeoiddbcomiaouazapr/Build/Products/Debug-iphonesimulator/MBProgressHUD/libMBProgressHUD.a"; sourceTree = "<group>"; };
 		FF4CB38F1F4C1DF6003BAB54 /* libSDWebImage.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDWebImage.a; path = "../../Library/Developer/Xcode/DerivedData/newBigPic-bhczghdrdzeoiddbcomiaouazapr/Build/Products/Debug-iphonesimulator/SDWebImage/libSDWebImage.a"; sourceTree = "<group>"; };
 		FF60A4671F4D689C00C2507B /* picURLs.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = picURLs.plist; sourceTree = "<group>"; };
-		FF60A4711F4D7F8100C2507B /* MBProgressHUD+MJ.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MBProgressHUD+MJ.h"; sourceTree = "<group>"; };
-		FF60A4721F4D7F8100C2507B /* MBProgressHUD+MJ.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MBProgressHUD+MJ.m"; sourceTree = "<group>"; };
 		FF60A4741F4D7F8100C2507B /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		FF60A4751F4D7F8100C2507B /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		FF60A4761F4D7F8100C2507B /* shortCutFunc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shortCutFunc.h; sourceTree = "<group>"; };
@@ -153,19 +150,9 @@
 		FF60A46F1F4D7F8100C2507B /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
-				FF60A4701F4D7F8100C2507B /* MBProgressHUD */,
 				FF60A4731F4D7F8100C2507B /* Reachability */,
 			);
 			path = 3rdParty;
-			sourceTree = "<group>";
-		};
-		FF60A4701F4D7F8100C2507B /* MBProgressHUD */ = {
-			isa = PBXGroup;
-			children = (
-				FF60A4711F4D7F8100C2507B /* MBProgressHUD+MJ.h */,
-				FF60A4721F4D7F8100C2507B /* MBProgressHUD+MJ.m */,
-			);
-			path = MBProgressHUD;
 			sourceTree = "<group>";
 		};
 		FF60A4731F4D7F8100C2507B /* Reachability */ = {
@@ -311,7 +298,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				FF60A4801F4D7F8100C2507B /* newBigPicViewGroup.m in Sources */,
-				FF60A47D1F4D7F8100C2507B /* MBProgressHUD+MJ.m in Sources */,
 				FF60A47F1F4D7F8100C2507B /* newBigPicView.m in Sources */,
 				FF3E11801E5FDF1200861941 /* ViewController.m in Sources */,
 				FF3E117D1E5FDF1200861941 /* AppDelegate.m in Sources */,
