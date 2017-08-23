@@ -7,53 +7,57 @@
 //
 
 #import "newBigPicView.h"
-//#import "wbPicSize.h"
 #import "Reachability.h"
 #import "MBProgressHUD+MJ.h"
 #import "predefine.h"
-
+#import <Photos/Photos.h>
 
 #import "UIImageView+newWebImage.h"
+
 
 //FIXME:	在图片分辨率和手机分辨率刚刚好的情况下,会不能缩放
 
 
 @interface newBigPicView()<UIGestureRecognizerDelegate,UIScrollViewDelegate>{
-	CGFloat screenWidth;//这三个全局变量在baseSetting中设置
-	CGFloat screenHeight;
-	CGFloat screenRatio;
-	CGFloat yWhenSameWH;
+	CGFloat _screenWidth;//这三个全局变量在baseSetting中设置
+	CGFloat _screenHeight;
+	CGFloat _screenRatio;
+	CGFloat _yWhenSameWH;
 	
-	NSInteger showingIndex;
-	NSInteger picCount;
+	NSInteger _showingIndex;
+	NSInteger _picCount;
 	/** 图片高除以宽的比例 */
-	CGFloat picRatio;
-	__block CGFloat picVIewScale;
+	CGFloat _picHWRatio;
+	__block CGFloat _picVIewScale;
 	
-	CGRect newFrameOfBigPicView;
+	CGRect _newFrameOfBigPicView;
 	
-	UIView *picSuperView;
+	UIView *_picSuperView;
 	
-	CGPoint zoomAnchorPoint;
-	CGPoint zoomAnchorPointRatio;
+	CGPoint _zoomAnchorPoint;
+	CGPoint _zoomAnchorPointRatio;
 	
-	CGFloat zoomMinimumZoomScale;
-	CGFloat zoomMaxmumZoomScale;
+	CGFloat _zoomMinimumZoomScale;
+	CGFloat _zoomMaxmumZoomScale;
 	
-	CGFloat realOffsetX;
+	CGFloat _realOffsetX;
 	/** 保存的上一次pan 的距离 */
-	CGFloat lastPanOffsetX;
+	CGFloat _lastPanOffsetX;
 	
 	//一个计数器,防止因为tableview去掉bounces后, 缩放到最小系统以为是不能动的导致pan的translate永远为空
-	NSUInteger scalePreventLock;
+	NSUInteger _scalePreventLock;
 	
-	BOOL opening;
+	BOOL _opening;
 	
-	BOOL swiping;
+	BOOL _swiping;
 	
-	NSString *thumb150whURL;
+	NSString *_thumb150whURL;
 	
-	BOOL shouldRecover;
+	BOOL _shouldRecover;
+	
+	double _date_s;
+	BOOL _isSingleTap;
+	double _overtime;
 }
 
 @property (nonatomic,strong)UIScrollView *contentView;
@@ -65,102 +69,6 @@
 @implementation newBigPicView
 
 
--(CGPoint)picRatio{
-	if (!_picRatio.x) {
-		if (self.delegate) {
-			_picRatio = [self.delegate picRatio];
-		}
-	}
-	return _picRatio;
-}
-
--(NSString *)exchangeStringToRatioURL{
-	if (!_exchangeStringToRatioURL) {
-		if (self.delegate) {
-			_exchangeStringToRatioURL = [self.delegate exchangeStringToRatioURL];
-		}
-	}
-	return _exchangeStringToRatioURL;
-}
-
--(NSString *)exchangeStringFromThumbnailURL{
-	if (!_exchangeStringFromThumbnailURL) {
-		if (self.delegate) {
-			_exchangeStringFromThumbnailURL = [self.delegate exchangeStringFromThumbnailURL];
-		}
-	}
-	return _exchangeStringFromThumbnailURL;
-}
-
--(NSString *)exchangeStringToMobileBigSizeURL{
-	if (!_exchangeStringToMobileBigSizeURL) {
-		if (self.delegate) {
-			_exchangeStringToMobileBigSizeURL = [self.delegate exchangeStringToMobileBigSizeURL];
-		}
-	}
-	return _exchangeStringToMobileBigSizeURL;
-}
-
--(NSString *)exchangeStringToWIFIBigSizeURL{
-	if (!_exchangeStringToWIFIBigSizeURL) {
-		if (self.delegate) {
-			_exchangeStringToWIFIBigSizeURL = [self.delegate exchangeStringToWIFIBigSizeURL];
-		}
-	}
-	return _exchangeStringToWIFIBigSizeURL;
-}
-
--(NSString *)exchangeStringToOriSizeURL{
-	if (!_exchangeStringToOriSizeURL) {
-		if (self.delegate) {
-			_exchangeStringToOriSizeURL = [self.delegate exchangeStringToOriSizeURL];
-		}
-	}
-	return _exchangeStringToOriSizeURL;
-}
-
--(NSString *)exchangeStringToGifURL{
-	if (!_exchangeStringToGifURL) {
-		if (self.delegate) {
-			_exchangeStringToGifURL = [self.delegate exchangeStringToGifURL];
-		}
-	}
-	return _exchangeStringToGifURL;
-}
-
--(OptimizeLandscapeDisplayType)OptimizeDisplayOfLandscapePic{
-	if (!_OptimizeDisplayOfLandscapePic) {
-		if (self.delegate) {
-			_OptimizeDisplayOfLandscapePic = [self.delegate OptimizeDisplayOfLandscapePic];
-		}
-	}
-	return _OptimizeDisplayOfLandscapePic;
-}
-
-
--(CGFloat)newBigPicAnimationTime{
-	if (!_newBigPicAnimationTime) {
-		if (self.delegate) {
-			_newBigPicAnimationTime = [self.delegate newBigPicAnimationTime];
-		}else{
-			_newBigPicAnimationTime = 0.25;
-		}
-	}
-	return _newBigPicAnimationTime;
-}
-
--(CGFloat)BGAlpha{
-	if (!_BGAlpha) {
-		if (self.delegate) {
-			_BGAlpha = [self.delegate BGAlpha];
-		}else{
-			_BGAlpha = 0.9;
-		}
-	}
-	return _BGAlpha;
-}
-
-
 +(newBigPicView *)bigPicture{
 	newBigPicView *bigPicView = [[newBigPicView alloc]init];
 	[bigPicView baseSetting];
@@ -168,14 +76,14 @@
 }
 
 -(void)baseSetting{
-	screenHeight = newScreenHeight;
-	screenWidth = newScreenWidth;
-	screenRatio =screenHeight/screenWidth;
-	yWhenSameWH = (screenHeight-screenWidth)/2;
-	picCount =0;
-	scalePreventLock =0;
-	opening = YES;
-	shouldRecover = NO;
+	_screenHeight = newScreenHeight;
+	_screenWidth = newScreenWidth;
+	_screenRatio =_screenHeight/_screenWidth;
+	_yWhenSameWH = (_screenHeight-_screenWidth)/2;
+	_picCount =0;
+	_scalePreventLock =0;
+	_opening = YES;
+	_shouldRecover = NO;
 	self.frame = newKeywindow.frame;
 	self.clipsToBounds = YES;
 	self.backgroundColor = [UIColor clearColor];
@@ -183,21 +91,17 @@
 	
 	[self initShowingPicView];
 	
+	_isSingleTap = YES;
+	_overtime = 0.23;
 }
 -(UIScrollView *)contentView{
 	if (!_contentView) {
 		_contentView = [[UIScrollView alloc]initWithFrame:self.bounds];
 		_contentView.delegate = self;
-		UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)];
+		UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapView:)];
 		//		tap.delegate = self;
 		[_contentView addGestureRecognizer:tap];
 		
-		UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapView:)];
-		doubleTap.numberOfTapsRequired = 2;
-		//		doubleTap.delegate = self;
-		[_contentView addGestureRecognizer:doubleTap];
-		
-		[tap requireGestureRecognizerToFail:doubleTap];
 		[tap requireGestureRecognizerToFail:_contentView.panGestureRecognizer];
 		
 		UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(savePic)];
@@ -233,22 +137,22 @@
 	NSString *picURL = [self setRatioAndGetPicURLWithPicView:picView];
 	
 	
-	CGRect oriFrameOfBigPicView = [picSuperView convertRect:picView.frame toView:nil];
+	CGRect oriFrameOfBigPicView = [_picSuperView convertRect:picView.frame toView:nil];
 	_showingPicView.frame= oriFrameOfBigPicView;
 	[UIView animateWithDuration:self.newBigPicAnimationTime animations:^{
 		_bgView.alpha = self.BGAlpha;
 		
 		if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
-		   1>picRatio){
-			if (0.5<=picRatio){
-				_showingPicView.frame = (CGRect){{(screenWidth/picRatio-screenWidth)/2, (screenHeight-screenWidth)/2}, screenWidth, screenWidth};
+		   1>_picHWRatio){
+			if (0.5<=_picHWRatio){
+				_showingPicView.frame = (CGRect){{(_screenWidth/_picHWRatio-_screenWidth)/2, (_screenHeight-_screenWidth)/2}, _screenWidth, _screenWidth};
 			}else{
-				CGFloat picW = screenWidth*1.5;
-				CGFloat picH = picW*picRatio;
-				_showingPicView.frame = (CGRect){{(picH-screenWidth)/2+(picW-picH), (screenHeight-picH)/2}, picH, picH};
+				CGFloat picW = _screenWidth*1.5;
+				CGFloat picH = picW*_picHWRatio;
+				_showingPicView.frame = (CGRect){{(picH-_screenWidth)/2+(picW-picH), (_screenHeight-picH)/2}, picH, picH};
 			}
 		}else{
-			_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
+			_showingPicView.frame = (CGRect){{0, _yWhenSameWH}, _screenWidth, _screenWidth};
 		}
 		
 		
@@ -274,22 +178,17 @@
 		}
 	}
 	
-	
-	
-	
-	
-	
-	if(!picCount){
+	if(!_picCount){
 		[picView.superview.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
 			if ([imageView.class isSubclassOfClass:[UIImageView class]])
 				if(!imageView.isHidden)
-					picCount++;
+					_picCount++;
 		}];
 	}
 	
 	switch (side) {
 		case newPicPreloadSideLeft:
-			showingIndex = showingIndex -1;
+			_showingIndex = _showingIndex -1;
 			j = j-1;
 			
 			if (j<0) {
@@ -304,12 +203,12 @@
 			}
 			break;
 		case newPicPreloadSideRight:
-			showingIndex = showingIndex + 1;
+			_showingIndex = _showingIndex + 1;
 			j = j+1;
-			if (j>=picCount) {
+			if (j>=_picCount) {
 				return;
 			}
-			while (j<=picCount) {
+			while (j<=_picCount) {
 				if ([subs[j].class isSubclassOfClass:[UIImageView class]]){
 					[self preLoadPicView:subs[j]];
 					break;
@@ -329,14 +228,14 @@
 	_contentView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
 	
 	if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
-	   1>picRatio){
-		CGFloat picH = screenWidth*picRatio;
-		newFrameOfBigPicView = (CGRect){{(screenWidth-picH)/2, (screenHeight-picH)/2}, picH, picH};
+	   1>_picHWRatio){
+		CGFloat picH = _screenWidth*_picHWRatio;
+		_newFrameOfBigPicView = (CGRect){{(_screenWidth-picH)/2, (_screenHeight-picH)/2}, picH, picH};
 	}else{
-		newFrameOfBigPicView = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
+		_newFrameOfBigPicView = (CGRect){{0, _yWhenSameWH}, _screenWidth, _screenWidth};
 	}
 	
-	_showingPicView.frame = newFrameOfBigPicView;
+	_showingPicView.frame = _newFrameOfBigPicView;
 	
 	NSString *picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
 	UIImage *largeImage = [UIImage loadImageCacheWithURL:picURL];
@@ -363,41 +262,41 @@
 }
 
 -(NSString *)setRatioAndGetPicURLWithPicView:(UIImageView *)picView{
-	picSuperView = picView.superview;
-	showingIndex = -1;
-	[picSuperView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+	_picSuperView = picView.superview;
+	_showingIndex = -1;
+	[_picSuperView.subviews enumerateObjectsUsingBlock:^(__kindof UIView *obj, NSUInteger idx, BOOL *stop) {
 		if (obj == picView) {
-			showingIndex = idx;
+			_showingIndex = idx;
 		}
 	}];
 	
-	if(!picCount){
+	if(!_picCount){
 		[picView.superview.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
 			if ([imageView.class isSubclassOfClass:[UIImageView class]])
 				if(!imageView.isHidden)
-					picCount++;
+					_picCount++;
 		}];
 	}
 	
-	if (0>showingIndex||showingIndex>=picCount){
+	if (0>_showingIndex||_showingIndex>=_picCount){
 		_showingPicView.image = nil;
 		return nil;
 	}
 	
 	
-	UIImageView *showPicView = picSuperView.subviews[showingIndex];
+	UIImageView *showPicView = _picSuperView.subviews[_showingIndex];
 	self.showingPicView.image = showPicView.image;
-	screenWidth =newScreenWidth;
-	screenHeight = newScreenHeight;
+	_screenWidth =newScreenWidth;
+	_screenHeight = newScreenHeight;
 	
-	thumb150whURL = showPicView.newImageURL.absoluteString;
+	_thumb150whURL = showPicView.newImageURL.absoluteString;
 	NSString *thumb120bURL;
 	if (self.picRatio.x) {
-		picRatio =self.picRatio.y/self.picRatio.x;
+		_picHWRatio =self.picRatio.y/self.picRatio.x;
 	}else{
-		picRatio =1;
+		_picHWRatio =1;
 		if (self.exchangeStringFromThumbnailURL&&self.exchangeStringToRatioURL) {
-			thumb120bURL = [thumb150whURL stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToRatioURL];
+			thumb120bURL = [_thumb150whURL stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToRatioURL];
 			
 			UIImage *image = [UIImage newImageFromDiskCacheForKey:thumb120bURL];
 			
@@ -405,13 +304,13 @@
 			CGFloat picSizeWidth = image.size.width;
 			CGFloat picSizeHeight = image.size.height;
 			if (picSizeHeight) {
-				picRatio = picSizeHeight/picSizeWidth;
+				_picHWRatio = picSizeHeight/picSizeWidth;
 			}
 			
 		}
 	}
 	
-	return [self getBig_picWiththumbnail_pic:thumb150whURL];
+	return [self getBig_picWiththumbnail_pic:_thumb150whURL];
 }
 
 -(void)getLargePicWithURL:(NSString *)picURL{
@@ -447,55 +346,55 @@
 	
 	CGFloat picSizeWidth = image.size.width;
 	CGFloat picSizeHeight = image.size.height;
-	picRatio = picSizeHeight/picSizeWidth;
+	_picHWRatio = picSizeHeight/picSizeWidth;
 	
 	CGFloat animTime = self.newBigPicAnimationTime;
 	if (!enableAnim) {
 		animTime = 0;
 	}
 	if (self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
-		1>picRatio) {
+		1>_picHWRatio) {
 		CGFloat picH = _showingPicView.height;
-		CGFloat picW = picH/picRatio;//算出来的高度
+		CGFloat picW = picH/_picHWRatio;//算出来的高度
 
 		[UIView animateWithDuration:animTime animations:^{
 			_contentView.contentSize = CGSizeMake(picW, picH);
 			//如果不把设置 contentsize 放这里,这个动画结束会导致位置图片高了一点
 			//原因是因为线程关系,animate 的completion 会在外层的completion 结束后再运行
 			_showingPicView.frame = (CGRect){{0, 0}, picW, picH};
-			_contentView.contentInset = UIEdgeInsetsMake((screenHeight-picH)/2, 0, 0, 0);
+			_contentView.contentInset = UIEdgeInsetsMake((_screenHeight-picH)/2, 0, 0, 0);
 		}completion:^(BOOL finished) {
-			picVIewScale = picSizeWidth/screenWidth;
+			_picVIewScale = picSizeWidth/_screenWidth;
 			
-			zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
-			zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
+			_zoomMinimumZoomScale = 0.5<_picVIewScale?0.5:_picVIewScale;
+			_zoomMaxmumZoomScale = 2>_picVIewScale?2:_picVIewScale;
 			
 			
-			_contentView.minimumZoomScale = zoomMinimumZoomScale;
-			_contentView.maximumZoomScale = zoomMaxmumZoomScale;
+			_contentView.minimumZoomScale = _zoomMinimumZoomScale;
+			_contentView.maximumZoomScale = _zoomMaxmumZoomScale;
 			
-			CGFloat frameHeight = screenWidth*picRatio;
-			newFrameOfBigPicView = (CGRect){{0, 0}, screenWidth, frameHeight};
+			CGFloat frameHeight = _screenWidth*_picHWRatio;
+			_newFrameOfBigPicView = (CGRect){{0, 0}, _screenWidth, frameHeight};
 			
-			opening = NO;
+			_opening = NO;
 		}];
 	}else{
-		picVIewScale = 1;
+		_picVIewScale = 1;
 		//如果是从150p 来的需要调用这个方法调整尺寸
-		CGFloat picH = screenWidth*picRatio;//算出来的高度
-		CGFloat picY = (screenHeight-picH)/2;
+		CGFloat picH = _screenWidth*_picHWRatio;//算出来的高度
+		CGFloat picY = (_screenHeight-picH)/2;
 		[UIView animateWithDuration:animTime animations:^{
-			_contentView.contentSize = CGSizeMake(screenWidth, picH);
-			_showingPicView.frame = (CGRect){{0, 0}, screenWidth, picH};
+			_contentView.contentSize = CGSizeMake(_screenWidth, picH);
+			_showingPicView.frame = (CGRect){{0, 0}, _screenWidth, picH};
 			_contentView.contentInset = UIEdgeInsetsMake(0>picY?0:picY, 0, 0, 0);
 		}completion:^(BOOL finished) {
-			newFrameOfBigPicView = _showingPicView.frame;
-			opening = NO;
-			picVIewScale = picSizeHeight/screenHeight;
-			zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
-			zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
-			_contentView.minimumZoomScale = zoomMinimumZoomScale;
-			_contentView.maximumZoomScale = zoomMaxmumZoomScale;
+			_newFrameOfBigPicView = _showingPicView.frame;
+			_opening = NO;
+			_picVIewScale = picSizeWidth/_screenWidth;
+			_zoomMinimumZoomScale = 1<_picVIewScale?1:_picVIewScale;
+			_zoomMaxmumZoomScale = 1>_picVIewScale?1:_picVIewScale;
+			_contentView.minimumZoomScale = _zoomMinimumZoomScale;
+			_contentView.maximumZoomScale = _zoomMaxmumZoomScale;
 		}];
 	}
 }
@@ -507,10 +406,28 @@
 -(void)scrollViewDidZoom:(UIScrollView *)scrollView{
 	CGFloat showPicHeight =_showingPicView.height;
 	CGFloat showPicWidth =_showingPicView.width;
-	_contentView.contentInset = UIEdgeInsetsMake(showPicHeight>screenHeight?0:((screenHeight-showPicHeight)/2), showPicWidth>screenWidth?0:((screenWidth-showPicWidth)/2), 0, 0);
+	_contentView.contentInset = UIEdgeInsetsMake(showPicHeight>_screenHeight?0:((_screenHeight-showPicHeight)/2), showPicWidth>_screenWidth?0:((_screenWidth-showPicWidth)/2), 0, 0);
 	
 }
 
+- (void)tapView:(UITapGestureRecognizer*)tap{
+	if (_date_s<0.1) {
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(_overtime * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			if (_isSingleTap) {
+				[self dismissBigPicView];
+			}
+			_date_s = 0;
+		});
+		_date_s = CFAbsoluteTimeGetCurrent();
+		_isSingleTap = YES;
+		return;
+	}
+	if (CFAbsoluteTimeGetCurrent()-_date_s<_overtime) {
+		_isSingleTap = NO;
+		_date_s = 0;
+		[self scaleView];
+	}
+}
 
 
 
@@ -518,16 +435,15 @@
  *  让 bigpicview 消失
  */
 -(void)dismissBigPicView{
-	//FIXME:	在动画快执行结束的时候突然没了
 	[UIImage cancelAllDownload];
 	[MBProgressHUD hideHUDForView:self];
-	newLog(@"showingIndex:%ld",(long)showingIndex);
-	UIImageView *showPicView = picSuperView.subviews[showingIndex];
-	CGRect oriFrameOfBigPicView = [picSuperView convertRect:showPicView.frame toView:nil];
-	newLog(@"oriFrame:x:%f,y:%f",oriFrameOfBigPicView.origin.x,oriFrameOfBigPicView.origin.y);
+
+	UIImageView *showPicView = _picSuperView.subviews[_showingIndex];
+	CGRect oriFrameOfBigPicView = [_picSuperView convertRect:showPicView.frame toView:nil];
+
 	
 	
-	CGFloat animateRatio = (picRatio<2?picRatio:2)-1;
+	CGFloat animateRatio = (_picHWRatio<2?_picHWRatio:2)-1;
 	animateRatio = animateRatio>1?animateRatio:1;
 	[UIView animateWithDuration:self.newBigPicAnimationTime*animateRatio delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		if ([self.delegate respondsToSelector:@selector(dismissBigPicViews)]){
@@ -537,7 +453,7 @@
 		//            _contentView.zoomScale = 1;
 		//加这句话会导致横图的 miniscale 小于1时返回 oriframe 会错位
 		_contentView.contentInset = UIEdgeInsetsZero;
-		_showingPicView.frame = newFrameOfBigPicView;
+		_showingPicView.frame = _newFrameOfBigPicView;
 		_showingPicView.frame = oriFrameOfBigPicView;
 		_bgView.alpha = 0;
 	} completion:^(BOOL finished) {
@@ -550,11 +466,11 @@
 	
 }
 
-- (void)doubleTapView:(UITapGestureRecognizer *)doubleTap{
-	if (_contentView.zoomScale != zoomMinimumZoomScale) {
-		[_contentView setZoomScale:zoomMinimumZoomScale animated:YES];
+- (void)scaleView{
+	if (_contentView.zoomScale != _zoomMinimumZoomScale) {
+		[_contentView setZoomScale:_zoomMinimumZoomScale animated:YES];
 	}else{
-		[_contentView setZoomScale:zoomMaxmumZoomScale animated:YES];
+		[_contentView setZoomScale:_zoomMaxmumZoomScale animated:YES];
 	}
 }
 
@@ -562,14 +478,42 @@
 - (void)savePic{
 	UIAlertController *alertcontroller = [UIAlertController
 										  alertControllerWithTitle:@"保存图片?"
-										  message:@"请选择项目" //tittle和msg会分行,msg字体会小点
+										  message:nil //tittle和msg会分行,msg字体会小点
 										  preferredStyle:UIAlertControllerStyleActionSheet];
-	UIAlertAction *addAction = [UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+	UIAlertAction *addAction = [UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+		//FIXME:	判断请求
+		PHAuthorizationStatus author = [PHPhotoLibrary authorizationStatus];
+		if (author == PHAuthorizationStatusRestricted ||
+			author == PHAuthorizationStatusDenied){
+			
+			UIAlertController *alertCtr = [UIAlertController
+												  alertControllerWithTitle:@"没有权限保存图片"
+												  message:@"是否跳转到设置?" //tittle和msg会分行,msg字体会小点
+												  preferredStyle:UIAlertControllerStyleAlert];
+			UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"跳转到设置" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+				NSString *urlstr =@"prefs:root=Privacy&path=PHOTOS";
+				NSURL *url;
+				if (UIDevice.currentDevice.systemVersion.doubleValue <10.0) {
+					url = [NSURL URLWithString:urlstr];
+				}else{
+					url = [NSURL URLWithString:[urlstr stringByReplacingOccurrencesOfString:@"prefs" withString:@"App-Prefs"]];;
+				}
+		
+				if ([UIApplication.sharedApplication canOpenURL:url]) {
+					[UIApplication.sharedApplication openURL:url];
+				}
+			}];
+			[alertCtr addAction:confirmAction];
+			UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) { }];
+			[alertCtr addAction:cancelAction];
+			[newKeywindow.rootViewController presentViewController:alertCtr animated:YES completion:nil];
+			return;
+		}
 		NSString *sizeOriURL;
 		if (self.exchangeStringFromThumbnailURL&&self.exchangeStringToOriSizeURL) {
-			sizeOriURL = [thumb150whURL stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToOriSizeURL];
+			sizeOriURL = [_thumb150whURL stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToOriSizeURL];
 		}else{
-			sizeOriURL = thumb150whURL;
+			sizeOriURL = _thumb150whURL;
 		}
 		
 		[UIImage downloadImageWithURL:sizeOriURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
@@ -637,12 +581,8 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 	if([UIImage newImageFromDiskCacheForKey:oriURL])
 		return oriURL;
 	
-	
-	newLog(@"网络状态%ld",(long)[[Reachability reachabilityForInternetConnection] currentReachabilityStatus]);
-	
-	
 	if (ReachableViaWiFi == [[Reachability reachabilityForInternetConnection] currentReachabilityStatus]){
-		newLog(@"是 WIFI !!!");
+
 		if (self.exchangeStringToWIFIBigSizeURL) {
 			return [thumbnail_pic stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToWIFIBigSizeURL];
 		}
@@ -651,7 +591,6 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 		}
 	}else{
 		//没有 wifi 就加载优化的大图
-		newLog(@"不是 WIFI !!!");
 		if (self.exchangeStringToGifURL) {
 			if ([[thumbnail_pic pathExtension] isEqualToString:@"gif"]) {
 				//中图可能加载的 gif 不完整不能播放,所以统一改成 large 版
@@ -662,6 +601,78 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 		
 	}
 	return thumbnail_pic;
+}
+
+#pragma mark - 同步superView的懒加载
+-(CGPoint)picRatio{
+	if (!_picRatio.x) {
+		_picRatio = _delegate?_delegate.picRatio:CGPointZero;
+	}
+	return _picRatio;
+}
+
+-(NSString *)exchangeStringToRatioURL{
+	if (!_exchangeStringToRatioURL) {
+		_exchangeStringToRatioURL = _delegate?_delegate.exchangeStringToRatioURL:nil;
+	}
+	return _exchangeStringToRatioURL;
+}
+
+-(NSString *)exchangeStringFromThumbnailURL{
+	if (!_exchangeStringFromThumbnailURL) {
+		_exchangeStringFromThumbnailURL = _delegate?_delegate.exchangeStringFromThumbnailURL:nil;
+	}
+	return _exchangeStringFromThumbnailURL;
+}
+
+-(NSString *)exchangeStringToMobileBigSizeURL{
+	if (!_exchangeStringToMobileBigSizeURL) {
+		_exchangeStringToMobileBigSizeURL = _delegate?_delegate.exchangeStringToMobileBigSizeURL:nil;
+	}
+	return _exchangeStringToMobileBigSizeURL;
+}
+
+-(NSString *)exchangeStringToWIFIBigSizeURL{
+	if (!_exchangeStringToWIFIBigSizeURL) {
+		_exchangeStringToWIFIBigSizeURL = _delegate?_delegate.exchangeStringToWIFIBigSizeURL:nil;
+	}
+	return _exchangeStringToWIFIBigSizeURL;
+}
+
+-(NSString *)exchangeStringToOriSizeURL{
+	if (!_exchangeStringToOriSizeURL) {
+		_exchangeStringToOriSizeURL = _delegate?_delegate.exchangeStringToOriSizeURL:nil;
+	}
+	return _exchangeStringToOriSizeURL;
+}
+
+-(NSString *)exchangeStringToGifURL{
+	if (!_exchangeStringToGifURL) {
+		_exchangeStringToGifURL = _delegate?_delegate.exchangeStringToGifURL:nil;
+	}
+	return _exchangeStringToGifURL;
+}
+
+-(OptimizeLandscapeDisplayType)OptimizeDisplayOfLandscapePic{
+	if (!_OptimizeDisplayOfLandscapePic) {
+		_OptimizeDisplayOfLandscapePic = _delegate?_delegate.OptimizeDisplayOfLandscapePic:OptimizeLandscapeDisplayTypeNO;
+	}
+	return _OptimizeDisplayOfLandscapePic;
+}
+
+
+-(CGFloat)newBigPicAnimationTime{
+	if (!_newBigPicAnimationTime) {
+		_newBigPicAnimationTime = _delegate?_delegate.newBigPicAnimationTime:0.25;
+	}
+	return _newBigPicAnimationTime;
+}
+
+-(CGFloat)BGAlpha{
+	if (!_BGAlpha) {
+		_BGAlpha = _delegate?_delegate.BGAlpha:1;
+	}
+	return _BGAlpha;
 }
 @end
 

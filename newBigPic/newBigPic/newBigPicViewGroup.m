@@ -50,11 +50,6 @@ NSString * const CollectionCellID = @"picContentViewCellID";
 	BOOL _isOpenImage;
 }
 
-
-//@property (nonatomic,strong)newBigPicView *preLoadLeftView;
-//@property (nonatomic,strong)newBigPicView *preLoadRightView;
-//@property (nonatomic,strong)UICollectionView *picContentView;
-
 @end
 
 @implementation newBigPicViewGroup
@@ -120,7 +115,7 @@ NSString * const CollectionCellID = @"picContentViewCellID";
 
     UIWindow *win = newKeywindow;
     win.windowLevel = UIWindowLevelAlert;
-    [win addSubview:self];
+    [win.rootViewController.view addSubview:self];
     [UIView animateWithDuration:_newBigPicAnimationTime animations:^{
         _bgView.alpha = _BGAlpha;
     }];
