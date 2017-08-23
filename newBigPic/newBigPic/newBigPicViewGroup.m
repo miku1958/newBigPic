@@ -60,9 +60,9 @@ NSString * const CollectionCellID = @"picContentViewCellID";
     flow.minimumInteritemSpacing = 0;//设置cell与cell的间距
 	flow.minimumLineSpacing = 0;
     flow.sectionInset = UIEdgeInsetsZero;//设置cell与collectionView的间距
-    flow.itemSize = newKeywindow.frame .size;
+    flow.itemSize = newBPKeywindow.frame .size;
     flow.scrollDirection = UICollectionViewScrollDirectionHorizontal;
-    return [newBigPicViewGroup.alloc initWithFrame:newKeywindow.frame collectionViewLayout:flow];
+    return [newBigPicViewGroup.alloc initWithFrame:newBPKeywindow.frame collectionViewLayout:flow];
 }
 
 -(instancetype)initWithFrame:(CGRect)frame collectionViewLayout:(UICollectionViewLayout *)layout{
@@ -82,8 +82,8 @@ NSString * const CollectionCellID = @"picContentViewCellID";
 
 -(void)baseSetting{
 
-    _screenWidth = newScreenWidth;
-    _screenHeight = newScreenHeight;
+    _screenWidth = newBPScreenWidth;
+    _screenHeight = newBPScreenHeight;
     _yWhenSameWH = (_screenHeight-_screenWidth)/2;
     
 
@@ -113,7 +113,7 @@ NSString * const CollectionCellID = @"picContentViewCellID";
 		}
 	}];
 
-    UIWindow *win = newKeywindow;
+    UIWindow *win = newBPKeywindow;
     win.windowLevel = UIWindowLevelAlert;
     [win.rootViewController.view addSubview:self];
     [UIView animateWithDuration:_newBigPicAnimationTime animations:^{

@@ -76,15 +76,15 @@
 }
 
 -(void)baseSetting{
-	_screenHeight = newScreenHeight;
-	_screenWidth = newScreenWidth;
+	_screenHeight = newBPScreenHeight;
+	_screenWidth = newBPScreenWidth;
 	_screenRatio =_screenHeight/_screenWidth;
 	_yWhenSameWH = (_screenHeight-_screenWidth)/2;
 	_picCount =0;
 	_scalePreventLock =0;
 	_opening = YES;
 	_shouldRecover = NO;
-	self.frame = newKeywindow.frame;
+	self.frame = newBPKeywindow.frame;
 	self.clipsToBounds = YES;
 	self.backgroundColor = [UIColor clearColor];
 	[self addSubview:self.contentView];
@@ -157,7 +157,7 @@
 		
 		
 	} completion:^(BOOL finished) {
-		newKeywindow.windowLevel = UIWindowLevelAlert;
+		newBPKeywindow.windowLevel = UIWindowLevelAlert;
 	}];
 	if (picURL) {
 		[self getLargePicWithURL:picURL];
@@ -253,7 +253,7 @@
 		[self getLargePicWithURL:picURL];
 	}
 	if (!self.superview) {
-		[newKeywindow.rootViewController.view addSubview:self];
+		[newBPKeywindow.rootViewController.view addSubview:self];
 	}
 }
 
@@ -286,8 +286,8 @@
 	
 	UIImageView *showPicView = _picSuperView.subviews[_showingIndex];
 	self.showingPicView.image = showPicView.image;
-	_screenWidth =newScreenWidth;
-	_screenHeight = newScreenHeight;
+	_screenWidth =newBPScreenWidth;
+	_screenHeight = newBPScreenHeight;
 	
 	_thumb150whURL = showPicView.newImageURL.absoluteString;
 	NSString *thumb120bURL;
@@ -354,7 +354,7 @@
 	}
 	if (self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
 		1>_picHWRatio) {
-		CGFloat picH = _showingPicView.height;
+		CGFloat picH = _showingPicView.frame.size.height;
 		CGFloat picW = picH/_picHWRatio;//算出来的高度
 
 		[UIView animateWithDuration:animTime animations:^{
@@ -404,8 +404,8 @@
 }
 
 -(void)scrollViewDidZoom:(UIScrollView *)scrollView{
-	CGFloat showPicHeight =_showingPicView.height;
-	CGFloat showPicWidth =_showingPicView.width;
+	CGFloat showPicHeight =_showingPicView.frame.size.height;
+	CGFloat showPicWidth =_showingPicView.frame.size.width;
 	_contentView.contentInset = UIEdgeInsetsMake(showPicHeight>_screenHeight?0:((_screenHeight-showPicHeight)/2), showPicWidth>_screenWidth?0:((_screenWidth-showPicWidth)/2), 0, 0);
 	
 }
@@ -458,7 +458,7 @@
 		_bgView.alpha = 0;
 	} completion:^(BOOL finished) {
 		self.showingPicView = nil;
-		newKeywindow.windowLevel = 0;
+		newBPKeywindow.windowLevel = 0;
 		[self removeFromSuperview];
 	}];
 	
@@ -506,7 +506,7 @@
 			[alertCtr addAction:confirmAction];
 			UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) { }];
 			[alertCtr addAction:cancelAction];
-			[newKeywindow.rootViewController presentViewController:alertCtr animated:YES completion:nil];
+			[newBPKeywindow.rootViewController presentViewController:alertCtr animated:YES completion:nil];
 			return;
 		}
 		NSString *sizeOriURL;
@@ -547,7 +547,7 @@
 								   }];
 	[alertcontroller addAction:addAction];
 	[alertcontroller addAction:cancelAction];
-	[newKeywindow.rootViewController presentViewController:alertcontroller animated:YES completion:nil];
+	[newBPKeywindow.rootViewController presentViewController:alertcontroller animated:YES completion:nil];
 	
 }
 //实现这个方法处理保存结果

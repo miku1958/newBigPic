@@ -6,26 +6,11 @@
 //  Copyright © 2017年 mikun. All rights reserved.
 //
 
-#import "UIView+Position.h"
 
+#define newBPKeywindow [UIApplication sharedApplication].keyWindow
 
-#define newKeywindow [UIApplication sharedApplication].keyWindow
+#define newBPScreenWidth [UIScreen mainScreen].bounds.size.width
 
-#define newScreenWidth [UIScreen mainScreen].bounds.size.width
+#define newBPScreenHeight [UIScreen mainScreen].bounds.size.height
 
-#define newScreenHeight [UIScreen mainScreen].bounds.size.height
-
-#define newURL(unUTF8str) [NSURL URLWithString:unUTF8str]
-
-#ifdef DEBUG
-//在调试界面输出信息
-
-//在调试界面输出详细信息(函数,行号)
-#define newDetailLog(...) NSLog(@"%s %d \n %@\n\n",__func__,__LINE__,[NSString stringWithFormat:__VA_ARGS__])
-//模拟设备被独占，线程被占用，用于测试性能
-#define newSleep(time) [NSThread sleepForTimeInterval:time]
-#else
-
-#define newDetailLog(...)
-#define newSleep(time)
-#endif
+#define newBPURL(unUTF8str) [NSURL URLWithString:unUTF8str]
