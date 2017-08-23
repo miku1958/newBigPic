@@ -23,7 +23,7 @@ typedef NS_ENUM(NSInteger, OptimizeLandscapeDisplayType) {
 /** 这个代理是给newBigPicViewGroup专用的，其他情况不需要用到这个代理 */
 @protocol newBigPicViewDelegate <NSObject>
 
-@property (nonatomic,assign)CGFloat animationTime;
+@property (nonatomic,assign)CGFloat newBigPicAnimationTime;
 @property (nonatomic,assign)CGFloat BGAlpha;
 
 /** 如果预览图片是正方形的，需要按原比例显示，需要设置这个 */
@@ -63,7 +63,7 @@ typedef NS_ENUM(NSInteger, OptimizeLandscapeDisplayType) {
 @property (nonatomic, weak) id<newBigPicViewDelegate> delegate;
 
 #pragma mark - 公用属性,和上面代理应该有的属性是一样的
-@property (nonatomic,assign)CGFloat animationTime;
+@property (nonatomic,assign)CGFloat newBigPicAnimationTime;
 @property (nonatomic,assign)CGFloat BGAlpha;
 
 #pragma mark - 缩略图比例
@@ -111,6 +111,7 @@ typedef NS_ENUM(NSInteger, newPicPreloadSide) {
 
 /** 把图片的 superview 和需要显示的图片在这个 subviews 中的 index 整个一起发过来 ,没有动画,直接显示*/
 -(void)preLoadPicView:(UIImageView *)picView preloadType:(newPicPreloadSide)side;
+-(void)preLoadPicView:(UIImageView *)preloadImView;
 
 /** 把需要显示的图片 url 发过来,并且指定消失的时候回到哪里 ,打开的时候先黑屏加载完再渐隐出来,消失的时候回到指定的地方*/
 -(void)setPicURL:(NSString *)URL returnView:(UIView *)returnView returnRect:(CGRect)returnRect;

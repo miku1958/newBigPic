@@ -46,7 +46,6 @@
 	
 	bigPicViewGroup.exchangeStringToOriSizeURL = @"large";
 	
-	bigPicViewGroup.OptimizeDisplayOfLandscapePic = OptimizeLandscapeDisplayTypeNO;
 	
 	[bigPicViewGroup setPicView:(UIImageView *)tap.view];
 	

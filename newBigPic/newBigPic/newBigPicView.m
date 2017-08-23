@@ -138,15 +138,15 @@
 }
 
 
--(CGFloat)animationTime{
-	if (!_animationTime) {
+-(CGFloat)newBigPicAnimationTime{
+	if (!_newBigPicAnimationTime) {
 		if (self.delegate) {
-			_animationTime = [self.delegate animationTime];
+			_newBigPicAnimationTime = [self.delegate newBigPicAnimationTime];
 		}else{
-			_animationTime = 0.25;
+			_newBigPicAnimationTime = 0.25;
 		}
 	}
-	return _animationTime;
+	return _newBigPicAnimationTime;
 }
 
 -(CGFloat)BGAlpha{
@@ -181,13 +181,15 @@
 	self.backgroundColor = [UIColor clearColor];
 	[self addSubview:self.contentView];
 	
+	[self initShowingPicView];
+	
 }
 -(UIScrollView *)contentView{
 	if (!_contentView) {
 		_contentView = [[UIScrollView alloc]initWithFrame:self.bounds];
 		_contentView.delegate = self;
 		UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)];
-//		tap.delegate = self;
+		//		tap.delegate = self;
 		[_contentView addGestureRecognizer:tap];
 		
 		UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapView:)];
@@ -210,15 +212,12 @@
 
 
 
--(UIImageView *)showingPicView{
-	if (!_showingPicView) {
-		_showingPicView = [[UIImageView alloc]init];
-		_showingPicView.contentMode = UIViewContentModeScaleAspectFill;
-		_showingPicView.layer.masksToBounds = YES;
-		_showingPicView.userInteractionEnabled = YES;
-		[_contentView addSubview:_showingPicView];
-	}
-	return _showingPicView;
+-(void)initShowingPicView{
+	_showingPicView = [[UIImageView alloc]init];
+	_showingPicView.contentMode = UIViewContentModeScaleAspectFill;
+	_showingPicView.layer.masksToBounds = YES;
+	_showingPicView.userInteractionEnabled = YES;
+	[_contentView addSubview:_showingPicView];
 }
 
 -(void)setPicView:(UIImageView *)picView{
@@ -229,18 +228,18 @@
 		_bgView.alpha = 0;//改变 alpha 可以改变模糊度
 		[self addSubview:_bgView];
 	}
-
+	
 	
 	NSString *picURL = [self setRatioAndGetPicURLWithPicView:picView];
-
-
+	
+	
 	CGRect oriFrameOfBigPicView = [picSuperView convertRect:picView.frame toView:nil];
 	_showingPicView.frame= oriFrameOfBigPicView;
-	[UIView animateWithDuration:self.animationTime animations:^{
+	[UIView animateWithDuration:self.newBigPicAnimationTime animations:^{
 		_bgView.alpha = self.BGAlpha;
 		
 		if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
-           1>picRatio){
+		   1>picRatio){
 			if (0.5<=picRatio){
 				_showingPicView.frame = (CGRect){{(screenWidth/picRatio-screenWidth)/2, (screenHeight-screenWidth)/2}, screenWidth, screenWidth};
 			}else{
@@ -251,7 +250,7 @@
 		}else{
 			_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
 		}
-	
+		
 		
 	} completion:^(BOOL finished) {
 		newKeywindow.windowLevel = UIWindowLevelAlert;
@@ -260,7 +259,7 @@
 		[self getLargePicWithURL:picURL];
 	}
 }
-
+//FIXME:	需要根据collectionview的特性来修改
 #pragma mark - 获取预加载的 picview
 -(void)preLoadPicView:(UIImageView *)picView preloadType:(newPicPreloadSide)side{
 	
@@ -268,19 +267,18 @@
 	int i = 0;
 	int j = -1;
 	for (; i<subs.count;i++) {
-		__kindof UIView * _Nonnull obj  = subs[i];
+		__kindof UIView *obj  = subs[i];
 		if (obj == picView) {
 			j=i;
 			break;
 		}
 	}
-
-	_showingPicView.alpha = 0;
 	
 	
-	NSString *picURL;
 	
-
+	
+	
+	
 	if(!picCount){
 		[picView.superview.subviews enumerateObjectsUsingBlock:^(UIView *imageView, NSUInteger idx, BOOL * _Nonnull stop) {
 			if ([imageView.class isSubclassOfClass:[UIImageView class]])
@@ -288,7 +286,7 @@
 					picCount++;
 		}];
 	}
-
+	
 	switch (side) {
 		case newPicPreloadSideLeft:
 			showingIndex = showingIndex -1;
@@ -299,9 +297,7 @@
 			}
 			while (j>=0) {
 				if ([subs[j].class isSubclassOfClass:[UIImageView class]]){
-					UIImageView *preloadImView =subs[j];
-					_showingPicView.image =preloadImView.image;
-					picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
+					[self preLoadPicView:subs[j]];
 					break;
 				}
 				j = j-1;
@@ -310,45 +306,51 @@
 		case newPicPreloadSideRight:
 			showingIndex = showingIndex + 1;
 			j = j+1;
-			
 			if (j>=picCount) {
 				return;
 			}
-			
 			while (j<=picCount) {
 				if ([subs[j].class isSubclassOfClass:[UIImageView class]]){
-					UIImageView *preloadImView =subs[j];
-					_showingPicView.image =preloadImView.image;
-					picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
+					[self preLoadPicView:subs[j]];
 					break;
 				}
 				j = j+1;
 			}
 			break;
-		default:
-			break;
+		default:break;
+	}
+}
+
+-(void)preLoadPicView:(UIImageView *)preloadImView{
+	if (_showingPicView.image == preloadImView.image) {
+		return;
 	}
 	
-	
-
-
 	_contentView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-
-		if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
-           1>picRatio){
-			CGFloat picH = screenWidth*picRatio;
-			_showingPicView.frame = (CGRect){{(screenWidth-picH)/2, (screenHeight-picH)/2}, picH, picH};
-		}else{
-			_showingPicView.frame = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
-		}
-		
 	
-	[UIView animateWithDuration:self.animationTime animations:^{
+	if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
+	   1>picRatio){
+		CGFloat picH = screenWidth*picRatio;
+		newFrameOfBigPicView = (CGRect){{(screenWidth-picH)/2, (screenHeight-picH)/2}, picH, picH};
+	}else{
+		newFrameOfBigPicView = (CGRect){{0, yWhenSameWH}, screenWidth, screenWidth};
+	}
+	
+	_showingPicView.frame = newFrameOfBigPicView;
+	
+	NSString *picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
+	UIImage *largeImage = [UIImage loadImageCacheWithURL:picURL];
+	if (largeImage) {
+		[self showLargeImage:largeImage withAnimation:NO];
+	}else{
+		_showingPicView.image =preloadImView.image;
+	}
+	
+	[UIView animateWithDuration:self.newBigPicAnimationTime animations:^{
 		_showingPicView.alpha =1;
 	}];
 	
-	newFrameOfBigPicView = _showingPicView.frame;
-	if (picURL){
+	if (!largeImage&&picURL){
 		[self getLargePicWithURL:picURL];
 	}
 	if (!self.superview) {
@@ -381,7 +383,7 @@
 		_showingPicView.image = nil;
 		return nil;
 	}
-
+	
 	
 	UIImageView *showPicView = picSuperView.subviews[showingIndex];
 	self.showingPicView.image = showPicView.image;
@@ -414,80 +416,88 @@
 
 -(void)getLargePicWithURL:(NSString *)picURL{
 
-    [UIImage downloadImageWithURL:picURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
-            
-            if(!hud){
-                hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
-                [hud.backgroundView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
-                return ;
-            }
-            NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/totalSize)];
-            hud.label.text =progress;
-        });
-    } completed:^(UIImage * image, NSData * data, NSError * error, UIImage *__autoreleasing *replaceSaveingImage) {
-        [self showLargeImage:image];
-    }];
+	[UIImage downloadImageWithURL:picURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
+			
+			if(!hud){
+				hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
+				[hud.backgroundView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
+				return ;
+			}
+			NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/totalSize)];
+			hud.label.text =progress;
+		});
+	} completed:^(UIImage * image, NSData * data, NSError * error, UIImage *__autoreleasing *replaceSaveingImage) {
+		[self showLargeImage:image];
+	}];
 	
-
+	
 }
-
 - (void)showLargeImage:(UIImage *)image{
-    if (!image) {
-        return ;
-        //TODO:	弹出提示
-    }
-    [MBProgressHUD hideHUDForView:self];
-    _showingPicView.image = image;
+	[self showLargeImage:image withAnimation:YES];
+}
+- (void)showLargeImage:(UIImage *)image withAnimation:(BOOL)enableAnim{
+	if (!image) {
+		return ;
+		//TODO:	弹出提示
+	}
+	[MBProgressHUD hideHUDForView:self];
+	_showingPicView.image = image;
+	
+	CGFloat picSizeWidth = image.size.width;
+	CGFloat picSizeHeight = image.size.height;
+	picRatio = picSizeHeight/picSizeWidth;
+	
+	CGFloat animTime = self.newBigPicAnimationTime;
+	if (!enableAnim) {
+		animTime = 0;
+	}
+	if (self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
+		1>picRatio) {
+		CGFloat picH = _showingPicView.height;
+		CGFloat picW = picH/picRatio;//算出来的高度
 
-    CGFloat picSizeWidth = image.size.width;
-    CGFloat picSizeHeight = image.size.height;
-    picRatio = picSizeHeight/picSizeWidth;
-    if (self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
-        1>picRatio) {
-        CGFloat picH = _showingPicView.height;
-        CGFloat picW = picH/picRatio;//算出来的高度
-        [UIView animateWithDuration:self.animationTime animations:^{
-            _contentView.contentSize = CGSizeMake(picW, picH);
-            //如果不把设置 contentsize 放这里,这个动画结束会导致位置图片高了一点
-            //原因是因为线程关系,animate 的completion 会在外层的completion 结束后再运行
-            _showingPicView.frame = (CGRect){{0, 0}, picW, picH};
-            _contentView.contentInset = UIEdgeInsetsMake((screenHeight-picH)/2, 0, 0, 0);
-        }completion:^(BOOL finished) {
-            picVIewScale = picSizeWidth/screenWidth;
-            
-            zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
-            zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
-            
-            
-            _contentView.minimumZoomScale = zoomMinimumZoomScale;
-            _contentView.maximumZoomScale = zoomMaxmumZoomScale;
-            
-            CGFloat frameHeight = screenWidth*picRatio;
-            newFrameOfBigPicView = (CGRect){{0, 0}, screenWidth, frameHeight};
-            
-            opening = NO;
-        }];
-    }else{
-        picVIewScale = 1;
-        //如果是从150p 来的需要调用这个方法调整尺寸
-        CGFloat picH = screenWidth*picRatio;//算出来的高度
-        CGFloat picY = (screenHeight-picH)/2;
-        [UIView animateWithDuration:self.animationTime animations:^{
-            _contentView.contentSize = CGSizeMake(screenWidth, picH);
-            _showingPicView.frame = (CGRect){{0, 0}, screenWidth, picH};
-            _contentView.contentInset = UIEdgeInsetsMake(0>picY?0:picY, 0, 0, 0);
-        }completion:^(BOOL finished) {
-            newFrameOfBigPicView = _showingPicView.frame;
-            opening = NO;
-            picVIewScale = picSizeHeight/screenHeight;
-            zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
-            zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
-            _contentView.minimumZoomScale = zoomMinimumZoomScale;
-            _contentView.maximumZoomScale = zoomMaxmumZoomScale;
-        }];
-    }
+		[UIView animateWithDuration:animTime animations:^{
+			_contentView.contentSize = CGSizeMake(picW, picH);
+			//如果不把设置 contentsize 放这里,这个动画结束会导致位置图片高了一点
+			//原因是因为线程关系,animate 的completion 会在外层的completion 结束后再运行
+			_showingPicView.frame = (CGRect){{0, 0}, picW, picH};
+			_contentView.contentInset = UIEdgeInsetsMake((screenHeight-picH)/2, 0, 0, 0);
+		}completion:^(BOOL finished) {
+			picVIewScale = picSizeWidth/screenWidth;
+			
+			zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
+			zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
+			
+			
+			_contentView.minimumZoomScale = zoomMinimumZoomScale;
+			_contentView.maximumZoomScale = zoomMaxmumZoomScale;
+			
+			CGFloat frameHeight = screenWidth*picRatio;
+			newFrameOfBigPicView = (CGRect){{0, 0}, screenWidth, frameHeight};
+			
+			opening = NO;
+		}];
+	}else{
+		picVIewScale = 1;
+		//如果是从150p 来的需要调用这个方法调整尺寸
+		CGFloat picH = screenWidth*picRatio;//算出来的高度
+		CGFloat picY = (screenHeight-picH)/2;
+		[UIView animateWithDuration:animTime animations:^{
+			_contentView.contentSize = CGSizeMake(screenWidth, picH);
+			_showingPicView.frame = (CGRect){{0, 0}, screenWidth, picH};
+			_contentView.contentInset = UIEdgeInsetsMake(0>picY?0:picY, 0, 0, 0);
+		}completion:^(BOOL finished) {
+			newFrameOfBigPicView = _showingPicView.frame;
+			opening = NO;
+			picVIewScale = picSizeHeight/screenHeight;
+			zoomMinimumZoomScale = 1<picVIewScale?1:picVIewScale;
+			zoomMaxmumZoomScale = 1>picVIewScale?1:picVIewScale;
+			_contentView.minimumZoomScale = zoomMinimumZoomScale;
+			_contentView.maximumZoomScale = zoomMaxmumZoomScale;
+		}];
+	}
 }
 
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
@@ -508,7 +518,7 @@
  *  让 bigpicview 消失
  */
 -(void)dismissBigPicView{
-    //FIXME:	在iOS10会在动画快执行结束的时候突然没了
+	//FIXME:	在动画快执行结束的时候突然没了
 	[UIImage cancelAllDownload];
 	[MBProgressHUD hideHUDForView:self];
 	newLog(@"showingIndex:%ld",(long)showingIndex);
@@ -519,7 +529,7 @@
 	
 	CGFloat animateRatio = (picRatio<2?picRatio:2)-1;
 	animateRatio = animateRatio>1?animateRatio:1;
-	[UIView animateWithDuration:self.animationTime*animateRatio delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
+	[UIView animateWithDuration:self.newBigPicAnimationTime*animateRatio delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		if ([self.delegate respondsToSelector:@selector(dismissBigPicViews)]){
 			[self.delegate dismissBigPicViews];
 		}
@@ -561,28 +571,28 @@
 		}else{
 			sizeOriURL = thumb150whURL;
 		}
-        
-        [UIImage downloadImageWithURL:sizeOriURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                MBProgressHUD *hud = [MBProgressHUD HUDForView:_showingPicView];
-                if(!hud){
-                    hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
-                    [hud addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
-                    
-                    return ;
-                }
-                NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/totalSize)];
-                hud.label.text =progress;
-            });
-        } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, UIImage *__autoreleasing *replaceSaveingImage) {
-            if (!image) {
-                return ;
-                //TODO:	弹出提示
-            }
-            [MBProgressHUD hideHUDForView:self];
-            UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
-        }];
-        
+		
+		[UIImage downloadImageWithURL:sizeOriURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+				MBProgressHUD *hud = [MBProgressHUD HUDForView:_showingPicView];
+				if(!hud){
+					hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
+					[hud addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
+					
+					return ;
+				}
+				NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/totalSize)];
+				hud.label.text =progress;
+			});
+		} completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, UIImage *__autoreleasing *replaceSaveingImage) {
+			if (!image) {
+				return ;
+				//TODO:	弹出提示
+			}
+			[MBProgressHUD hideHUDForView:self];
+			UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+		}];
+		
 		
 	}];
 	UIAlertAction *cancelAction = [UIAlertAction
@@ -623,7 +633,7 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 		oriURL = [thumbnail_pic stringByReplacingOccurrencesOfString:_exchangeStringFromThumbnailURL withString:_exchangeStringToOriSizeURL];
 		
 	}
-
+	
 	if([UIImage newImageFromDiskCacheForKey:oriURL])
 		return oriURL;
 	
@@ -649,11 +659,11 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 			}
 			return [thumbnail_pic stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToMobileBigSizeURL];
 		}
-
+		
 	}
 	return thumbnail_pic;
 }
 @end
-	
-	
-	
+
+
+

@@ -9,15 +9,15 @@
 #import <UIKit/UIKit.h>
 #import "newBigPicView.h"
 
-@interface newBigPicViewGroup : UIView<newBigPicViewDelegate>
+@interface newBigPicViewGroup : UICollectionView<newBigPicViewDelegate>
 
 #pragma mark - 公用属性
-@property (nonatomic,assign)CGFloat animationTime;
+@property (nonatomic,assign)CGFloat newBigPicAnimationTime;
 @property (nonatomic,assign)CGFloat BGAlpha;
 
 
 #pragma mark - 缩略图比例
-/** 如果预览图片是正方形的，需要按原比例显示，需要设置这个 */
+/** 如果预览图片不是正方形的，需要按原比例显示，需要设置这个 */
 @property (nonatomic,assign)CGPoint picRatio;
 
 /** 如果原比例是从某个缩略图获取的，可以设置这个标识符，但优先级没有picRatio高 */
