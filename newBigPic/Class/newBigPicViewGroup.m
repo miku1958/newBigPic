@@ -10,6 +10,10 @@
 #import "newBigPicView.h"
 #import "predefine.h"
 
+@interface newBigPicModel : NSObject
+@property (nonatomic,weak)UIImageView *imageView;
+@property (nonatomic,copy)NSString *imageURL;
+@end
 
 @interface newBigPicViewGroupCell:UICollectionViewCell
 @property (nonatomic,strong)newBigPicView *handleView;
@@ -45,9 +49,11 @@ NSString * const CollectionCellID = @"picContentViewCellID";
     
     UIVisualEffectView *_bgView;
     
-    NSMutableArray<UIImageView*> *_modelArr;
+    NSMutableArray<newBigPicModel*> *_modelArr;
 	
 	BOOL _isOpenImage;
+	
+	BOOL _fromURL;
 }
 
 @end
@@ -125,19 +131,37 @@ NSString * const CollectionCellID = @"picContentViewCellID";
     [_picSuperView.subviews enumerateObjectsUsingBlock:^(__kindof UIView *imageView, NSUInteger idx, BOOL *stop) {
         if ([imageView.class isSubclassOfClass:UIImageView.class]){
             if(!imageView.isHidden){
-                [_modelArr addObject:imageView];
+				newBigPicModel *model = [[newBigPicModel alloc]init];
+				model.imageView = imageView;
+                [_modelArr addObject:model];
             }
         }
     }];
-	[UIView performWithoutAnimation:^{
-		[self reloadData];
-	}];
+	[self reloadData];
 	
 	_currentOffsetX = _screenWidth*_showingIndex;
 	self.contentOffset = CGPointMake(_currentOffsetX, 0);
 
-    
-    
+}
+-(void)setPicURLs:(NSArray<NSString*> *)URLs showingIndex:(NSUInteger)showingIndex{
+	_fromURL = YES;
+	_showingIndex = showingIndex;
+	[URLs enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL *stop) {
+		newBigPicModel *model = [[newBigPicModel alloc]init];
+		model.imageURL = obj;
+		[_modelArr addObject:model];
+	}];
+	
+	UIWindow *win = newBPKeywindow;
+	win.windowLevel = UIWindowLevelAlert;
+	[win.rootViewController.view addSubview:self];
+	[UIView animateWithDuration:_newBigPicAnimationTime animations:^{
+		_bgView.alpha = _BGAlpha;
+	}];
+	
+	[self reloadData];
+	_currentOffsetX = _screenWidth*_showingIndex;
+	self.contentOffset = CGPointMake(_currentOffsetX, 0);
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
@@ -149,14 +173,25 @@ NSString * const CollectionCellID = @"picContentViewCellID";
     newBigPicViewGroupCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:CollectionCellID forIndexPath:indexPath];
 	cell.handleView.delegate = self;
 	_showingIndex = indexPath.row;
-	_showingView = _modelArr[_showingIndex];
-	
-	if (_isOpenImage) {
-		_isOpenImage = NO;
-		[cell.handleView setPicView:_showingView];
+	if (_fromURL) {
+		if (_isOpenImage) {
+			_isOpenImage = NO;
+			[cell.handleView setPicView:nil withEffect:BigPicDisplayEffectTypeEaseInOut largeImageURL:_modelArr[_showingIndex].imageURL];
+		}else{
+			[cell.handleView preLoadWithLargeImageURL:_modelArr[_showingIndex].imageURL];
+		}
 	}else{
-		[cell.handleView preLoadPicView:_showingView];
+		_showingView = _modelArr[_showingIndex].imageView;
+		if (_isOpenImage) {
+			_isOpenImage = NO;
+			[cell.handleView setPicView:_showingView];
+		}else{
+			[cell.handleView preLoadPicView:_showingView];
+		}
 	}
+
+	
+
     return cell;
 }
 
@@ -167,7 +202,7 @@ NSString * const CollectionCellID = @"picContentViewCellID";
 	NSIndexPath *indexPath = [NSIndexPath indexPathForItem:index inSection:0];
 	    newBigPicViewGroupCell *cell = [self dequeueReusableCellWithReuseIdentifier:CollectionCellID forIndexPath:indexPath];
 	cell.handleView.delegate = self;
-	[cell.handleView preLoadPicView:_modelArr[index]];
+	[cell.handleView preLoadPicView:_modelArr[index].imageView];
 	
 }
 
@@ -211,5 +246,10 @@ NSString * const CollectionCellID = @"picContentViewCellID";
     }
 	return self;
 }
+
+@end
+
+@implementation newBigPicModel
+
 
 @end

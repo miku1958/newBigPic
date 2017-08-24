@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "newBigPic"
-  s.version      = "1.0.0"
+  s.version      = "1.0.1"
   s.summary      = "能完美缩放的多图浏览循环利用"
 
   # This description is used to generate tags and improve search results.

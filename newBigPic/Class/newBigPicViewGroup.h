@@ -47,6 +47,10 @@
 +(newBigPicViewGroup *)bigPictureGroup;
 
 #pragma mark - 设置图片方法
-/** 把多图的 view(这个 view 只装了需要显示的UIImageViews) 整个一起发过来 */
+/** 把装了多UIImageview的View中,要显示的UIImageview传进来 */
 -(void)setPicView:(UIImageView *)picView;
+
+/** 把需要显示的图片 url 发过来*/
+-(void)setPicURLs:(NSArray *)URLs showingIndex:(NSUInteger)showingIndex;
+
 @end

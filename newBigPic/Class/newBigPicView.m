@@ -13,6 +13,7 @@
 #import <Photos/Photos.h>
 
 #import "newWebImage.h"
+#import "newBigPicViewGroup.h"
 
 
 //FIXME:	在图片分辨率和手机分辨率刚刚好的情况下,会不能缩放
@@ -58,6 +59,8 @@
 	double _date_s;
 	BOOL _isSingleTap;
 	double _overtime;
+	
+	BigPicDisplayEffectType _effect;
 }
 
 @property (nonatomic,strong)UIScrollView *contentView;
@@ -123,8 +126,14 @@
 	_showingPicView.userInteractionEnabled = YES;
 	[_contentView addSubview:_showingPicView];
 }
-
 -(void)setPicView:(UIImageView *)picView{
+	[self setPicView:picView withEffect:BigPicDisplayEffectTypeScale largeImageURL:nil];
+}
+-(void)setPicView:(UIImageView *)picView  withEffect:(BigPicDisplayEffectType)effect{
+	[self setPicView:picView withEffect:effect largeImageURL:nil];
+}
+-(void)setPicView:(UIImageView *)picView  withEffect:(BigPicDisplayEffectType)effect largeImageURL:(NSString*)largeImageURL{
+	_effect = effect;
 	if (!self.delegate) {
 		UIBlurEffect * blur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
 		_bgView = [[UIVisualEffectView alloc]initWithEffect:blur];
@@ -132,14 +141,35 @@
 		_bgView.alpha = 0;//改变 alpha 可以改变模糊度
 		[self addSubview:_bgView];
 	}
+	NSString *picURL;
+	if (largeImageURL) {
+		picURL = largeImageURL;
+	}else{
+		picURL = [self setRatioAndGetPicURLWithPicView:picView];
+	}
+
 	
-	
-	NSString *picURL = [self setRatioAndGetPicURLWithPicView:picView];
-	
-	
-	CGRect oriFrameOfBigPicView = [_picSuperView convertRect:picView.frame toView:nil];
-	_showingPicView.frame= oriFrameOfBigPicView;
+	switch (_effect) {
+		case BigPicDisplayEffectTypeEaseInOut:
+			_showingPicView.frame = (CGRect){{self.center.x, self.center.y}, 0, 0};
+			_showingPicView.alpha = 0;
+		break;
+		case BigPicDisplayEffectTypeScale:
+			_showingPicView.frame = [_picSuperView convertRect:picView.frame toView:nil];
+		break;
+	}
+
 	[UIView animateWithDuration:self.newBigPicAnimationTime animations:^{
+		
+		switch (_effect) {
+		case BigPicDisplayEffectTypeEaseInOut:
+			_showingPicView.alpha = 1;
+		break;
+		case BigPicDisplayEffectTypeScale:
+
+		break;
+		}
+		
 		_bgView.alpha = self.BGAlpha;
 		
 		if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
@@ -154,7 +184,6 @@
 		}else{
 			_showingPicView.frame = (CGRect){{0, _yWhenSameWH}, _screenWidth, _screenWidth};
 		}
-		
 		
 	} completion:^(BOOL finished) {
 		newBPKeywindow.windowLevel = UIWindowLevelAlert;
@@ -221,10 +250,20 @@
 }
 
 -(void)preLoadPicView:(UIImageView *)preloadImView{
-	if (_showingPicView.image == preloadImView.image) {
+	[self preLoadPicView:preloadImView largeImageURL:nil];
+}
+
+-(void)preLoadWithLargeImageURL:(NSString*)largeImageURL{
+	[self preLoadPicView:nil largeImageURL:largeImageURL];
+}
+
+-(void)preLoadPicView:(UIImageView *)preloadImView largeImageURL:(NSString*)largeImageURL{
+	if (preloadImView && _showingPicView.image == preloadImView.image) {
 		return;
 	}
-	
+	if (largeImageURL&&[_showingPicView.newImageURL.absoluteString isEqualToString:largeImageURL]) {
+		return;
+	}
 	_contentView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
 	
 	if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
@@ -237,11 +276,16 @@
 	
 	_showingPicView.frame = _newFrameOfBigPicView;
 	
-	NSString *picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
+	NSString *picURL;
+	if (largeImageURL) {
+		picURL = largeImageURL;
+	}else{
+		picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
+	}
 	UIImage *largeImage = [UIImage loadImageCacheWithURL:picURL];
 	if (largeImage) {
 		[self showLargeImage:largeImage withAnimation:NO];
-	}else{
+	}else if(preloadImView){
 		_showingPicView.image =preloadImView.image;
 	}
 	
@@ -255,10 +299,6 @@
 	if (!self.superview) {
 		[newBPKeywindow.rootViewController.view addSubview:self];
 	}
-}
-
--(void)setPicURL:(NSString *)URL sourceView:(UIView *)sourceView sourceRect:(CGRect)sourceRect{
-	
 }
 
 -(NSString *)setRatioAndGetPicURLWithPicView:(UIImageView *)picView{
@@ -446,16 +486,27 @@
 	CGFloat animateRatio = (_picHWRatio<2?_picHWRatio:2)-1;
 	animateRatio = animateRatio>1?animateRatio:1;
 	[UIView animateWithDuration:self.newBigPicAnimationTime*animateRatio delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		if ([self.delegate respondsToSelector:@selector(dismissBigPicViews)]){
-			[self.delegate dismissBigPicViews];
+		BOOL isFromURL = NO;
+		if (_delegate) {
+			if ([_delegate respondsToSelector:@selector(dismissBigPicViews)]){
+				[_delegate dismissBigPicViews];
+			}
+			UIView *delegate = _delegate;
+			if ([delegate valueForKey:@"_fromURL"]) {
+				isFromURL = YES;
+			}
 		}
-		_contentView.contentOffset = CGPointZero;
-		//            _contentView.zoomScale = 1;
-		//加这句话会导致横图的 miniscale 小于1时返回 oriframe 会错位
-		_contentView.contentInset = UIEdgeInsetsZero;
-		_showingPicView.frame = _newFrameOfBigPicView;
-		_showingPicView.frame = oriFrameOfBigPicView;
-		_bgView.alpha = 0;
+		if (isFromURL) {
+			self.alpha = 0;
+		}else{
+			_contentView.contentOffset = CGPointZero;
+			//            _contentView.zoomScale = 1;
+			//加这句话会导致横图的 miniscale 小于1时返回 oriframe 会错位
+			_contentView.contentInset = UIEdgeInsetsZero;
+			_showingPicView.frame = _newFrameOfBigPicView;
+			_showingPicView.frame = oriFrameOfBigPicView;
+			_bgView.alpha = 0;
+		}
 	} completion:^(BOOL finished) {
 		self.showingPicView = nil;
 		newBPKeywindow.windowLevel = 0;
