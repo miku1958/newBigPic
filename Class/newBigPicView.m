@@ -8,11 +8,12 @@
 
 #import "newBigPicView.h"
 #import "Reachability.h"
-#import "MBProgressHUD+MJ.h"
+#import "MBProgressHUD.h"
 #import "predefine.h"
 #import <Photos/Photos.h>
 
 #import "newWebImage.h"
+#import "newBigPicViewGroup.h"
 
 
 //FIXME:	在图片分辨率和手机分辨率刚刚好的情况下,会不能缩放
@@ -58,6 +59,10 @@
 	double _date_s;
 	BOOL _isSingleTap;
 	double _overtime;
+	
+	BigPicDisplayEffectType _effect;
+	
+	CGFloat thumbCornerRadius;
 }
 
 @property (nonatomic,strong)UIScrollView *contentView;
@@ -123,38 +128,81 @@
 	_showingPicView.userInteractionEnabled = YES;
 	[_contentView addSubview:_showingPicView];
 }
-
 -(void)setPicView:(UIImageView *)picView{
+	[self setPicView:picView withEffect:BigPicDisplayEffectTypeScale largeImageURL:nil];
+}
+-(void)setPicView:(UIImageView *)picView  withEffect:(BigPicDisplayEffectType)effect{
+	[self setPicView:picView withEffect:effect largeImageURL:nil];
+}
+-(void)setPicView:(UIImageView *)picView  withEffect:(BigPicDisplayEffectType)effect largeImageURL:(NSString*)largeImageURL{
+	[self setPicView:picView withEffect:effect largeImageURL:largeImageURL cornerRadius:0];
+}
+
+-(void)setPicView:(UIImageView *)picView withEffect:(BigPicDisplayEffectType)effect largeImageURL:(NSString*)largeImageURL cornerRadius:(CGFloat)cornerRadius{
+	thumbCornerRadius = cornerRadius;
+	_showingPicView.layer.cornerRadius = cornerRadius;
+	_effect = effect;
+	_picSuperView = picView.superview;
+	_showingPicView.image = picView.image;
 	if (!self.delegate) {
 		UIBlurEffect * blur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
 		_bgView = [[UIVisualEffectView alloc]initWithEffect:blur];
 		_bgView.frame = self.bounds;
 		_bgView.alpha = 0;//改变 alpha 可以改变模糊度
-		[self addSubview:_bgView];
+		[self insertSubview:_bgView atIndex:0];
+	}
+	NSString *picURL;
+	if (largeImageURL) {
+		picURL = largeImageURL;
+	}else{
+		picURL = [self setRatioAndGetPicURLWithPicView:picView];
 	}
 	
 	
-	NSString *picURL = [self setRatioAndGetPicURLWithPicView:picView];
+	switch (_effect) {
+		case BigPicDisplayEffectTypeEaseInOut:
+			_showingPicView.frame = (CGRect){{self.center.x, self.center.y}, 0, 0};
+			_showingPicView.alpha = 0;
+			break;
+		case BigPicDisplayEffectTypeScale:
+			_showingPicView.frame = [_picSuperView convertRect:picView.frame toView:nil];
+			break;
+	}
+	if (!self.superview) {
+		[newBPKeywindow.rootViewController.view addSubview:self];
+	}
 	
+	[self showingPicViewCornerRadius:0 AnimationTime:self.newBigPicAnimationTime];
 	
-	CGRect oriFrameOfBigPicView = [_picSuperView convertRect:picView.frame toView:nil];
-	_showingPicView.frame= oriFrameOfBigPicView;
 	[UIView animateWithDuration:self.newBigPicAnimationTime animations:^{
-		_bgView.alpha = self.BGAlpha;
 		
-		if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
-		   1>_picHWRatio){
-			if (0.5<=_picHWRatio){
-				_showingPicView.frame = (CGRect){{(_screenWidth/_picHWRatio-_screenWidth)/2, (_screenHeight-_screenWidth)/2}, _screenWidth, _screenWidth};
-			}else{
-				CGFloat picW = _screenWidth*1.5;
-				CGFloat picH = picW*_picHWRatio;
-				_showingPicView.frame = (CGRect){{(picH-_screenWidth)/2+(picW-picH), (_screenHeight-picH)/2}, picH, picH};
-			}
-		}else{
-			_showingPicView.frame = (CGRect){{0, _yWhenSameWH}, _screenWidth, _screenWidth};
+		switch (_effect) {
+			case BigPicDisplayEffectTypeEaseInOut:
+				_showingPicView.alpha = 1;
+				break;
+			case BigPicDisplayEffectTypeScale:
+				
+				break;
 		}
 		
+		_bgView.alpha = self.BGAlpha;
+		
+		if (_delegate) {
+			if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
+			   1>_picHWRatio){
+				if (0.5<=_picHWRatio){
+					_showingPicView.frame = (CGRect){{(_screenWidth/_picHWRatio-_screenWidth)/2, (_screenHeight-_screenWidth)/2}, _screenWidth, _screenWidth};
+				}else{
+					CGFloat picW = _screenWidth*1.5;
+					CGFloat picH = picW*_picHWRatio;
+					_showingPicView.frame = (CGRect){{(picH-_screenWidth)/2+(picW-picH), (_screenHeight-picH)/2}, picH, picH};
+				}
+			}else{
+				_showingPicView.frame = (CGRect){{0, _yWhenSameWH}, _screenWidth, _screenWidth};
+			}
+		}else{
+			[self showLargeImage:_showingPicView.image withAnimation:NO];
+		}
 		
 	} completion:^(BOOL finished) {
 		newBPKeywindow.windowLevel = UIWindowLevelAlert;
@@ -163,6 +211,7 @@
 		[self getLargePicWithURL:picURL];
 	}
 }
+
 //FIXME:	需要根据collectionview的特性来修改
 #pragma mark - 获取预加载的 picview
 -(void)preLoadPicView:(UIImageView *)picView preloadType:(newPicPreloadSide)side{
@@ -221,10 +270,20 @@
 }
 
 -(void)preLoadPicView:(UIImageView *)preloadImView{
-	if (_showingPicView.image == preloadImView.image) {
+	[self preLoadPicView:preloadImView largeImageURL:nil];
+}
+
+-(void)preLoadWithLargeImageURL:(NSString*)largeImageURL{
+	[self preLoadPicView:nil largeImageURL:largeImageURL];
+}
+
+-(void)preLoadPicView:(UIImageView *)preloadImView largeImageURL:(NSString*)largeImageURL{
+	if (preloadImView && _showingPicView.image == preloadImView.image) {
 		return;
 	}
-	
+	if (largeImageURL&&[_showingPicView.newImageURL.absoluteString isEqualToString:largeImageURL]) {
+		return;
+	}
 	_contentView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
 	
 	if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
@@ -237,11 +296,16 @@
 	
 	_showingPicView.frame = _newFrameOfBigPicView;
 	
-	NSString *picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
+	NSString *picURL;
+	if (largeImageURL) {
+		picURL = largeImageURL;
+	}else{
+		picURL = [self setRatioAndGetPicURLWithPicView:preloadImView];
+	}
 	UIImage *largeImage = [UIImage loadImageCacheWithURL:picURL];
 	if (largeImage) {
 		[self showLargeImage:largeImage withAnimation:NO];
-	}else{
+	}else if(preloadImView){
 		_showingPicView.image =preloadImView.image;
 	}
 	
@@ -255,10 +319,6 @@
 	if (!self.superview) {
 		[newBPKeywindow.rootViewController.view addSubview:self];
 	}
-}
-
--(void)setPicURL:(NSString *)URL sourceView:(UIView *)sourceView sourceRect:(CGRect)sourceRect{
-	
 }
 
 -(NSString *)setRatioAndGetPicURLWithPicView:(UIImageView *)picView{
@@ -320,7 +380,7 @@
 			MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
 			
 			if(!hud){
-				hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
+				hud = [self showMessage:@"正在加载:0%" toView:self];
 				[hud.backgroundView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
 				return ;
 			}
@@ -341,11 +401,11 @@
 		return ;
 		//TODO:	弹出提示
 	}
-	[MBProgressHUD hideHUDForView:self];
+	[MBProgressHUD hideHUDForView:self animated:YES];
 	_showingPicView.image = image;
 	
-	CGFloat picSizeWidth = image.size.width;
-	CGFloat picSizeHeight = image.size.height;
+	CGFloat picSizeWidth = _showingPicView.image.size.width;
+	CGFloat picSizeHeight = _showingPicView.image.size.height;
 	_picHWRatio = picSizeHeight/picSizeWidth;
 	
 	CGFloat animTime = self.newBigPicAnimationTime;
@@ -390,7 +450,7 @@
 		}completion:^(BOOL finished) {
 			_newFrameOfBigPicView = _showingPicView.frame;
 			_opening = NO;
-			_picVIewScale = picSizeWidth/_screenWidth;
+			_picVIewScale = _showingPicView.image.size.width/_screenWidth;
 			_zoomMinimumZoomScale = 1<_picVIewScale?1:_picVIewScale;
 			_zoomMaxmumZoomScale = 1>_picVIewScale?1:_picVIewScale;
 			_contentView.minimumZoomScale = _zoomMinimumZoomScale;
@@ -436,7 +496,7 @@
  */
 -(void)dismissBigPicView{
 	[UIImage cancelAllDownload];
-	[MBProgressHUD hideHUDForView:self];
+	[MBProgressHUD hideHUDForView:self animated:YES];
 
 	UIImageView *showPicView = _picSuperView.subviews[_showingIndex];
 	CGRect oriFrameOfBigPicView = [_picSuperView convertRect:showPicView.frame toView:nil];
@@ -445,25 +505,49 @@
 	
 	CGFloat animateRatio = (_picHWRatio<2?_picHWRatio:2)-1;
 	animateRatio = animateRatio>1?animateRatio:1;
+	
+	[self showingPicViewCornerRadius:thumbCornerRadius AnimationTime:self.newBigPicAnimationTime*animateRatio];
+	
 	[UIView animateWithDuration:self.newBigPicAnimationTime*animateRatio delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		if ([self.delegate respondsToSelector:@selector(dismissBigPicViews)]){
-			[self.delegate dismissBigPicViews];
+		BOOL isFromURL = NO;
+
+		if (_delegate) {
+			if ([_delegate respondsToSelector:@selector(dismissBigPicViews)]){
+				[_delegate dismissBigPicViews];
+			}
+			UIView *delegate = _delegate;
+			if ([delegate valueForKey:@"_fromURL"]) {
+				isFromURL = YES;
+			}
 		}
-		_contentView.contentOffset = CGPointZero;
-		//            _contentView.zoomScale = 1;
-		//加这句话会导致横图的 miniscale 小于1时返回 oriframe 会错位
-		_contentView.contentInset = UIEdgeInsetsZero;
-		_showingPicView.frame = _newFrameOfBigPicView;
-		_showingPicView.frame = oriFrameOfBigPicView;
-		_bgView.alpha = 0;
+		if (isFromURL) {
+			self.alpha = 0;
+		}else{
+			_contentView.contentOffset = CGPointZero;
+			//            _contentView.zoomScale = 1;
+			//加这句话会导致横图的 miniscale 小于1时返回 oriframe 会错位
+			_contentView.contentInset = UIEdgeInsetsZero;
+			_showingPicView.frame = _newFrameOfBigPicView;
+			_showingPicView.frame = oriFrameOfBigPicView;
+			_bgView.alpha = 0;
+		}
 	} completion:^(BOOL finished) {
 		self.showingPicView = nil;
 		newBPKeywindow.windowLevel = 0;
 		[self removeFromSuperview];
 	}];
 	
-	
-	
+}
+- (void)showingPicViewCornerRadius:(CGFloat)cornerRadius AnimationTime:(CGFloat)time {
+	__weak typeof(self) _self = self;
+	CABasicAnimation *anim = [CABasicAnimation animation];
+	anim.keyPath = @"cornerRadius";
+	anim.toValue = @(cornerRadius);
+	anim.duration = time;
+	anim.removedOnCompletion = NO;
+	// 保持最新的状态（默认值是kCAFillModeRemoved移除动画）
+	anim.fillMode = kCAFillModeForwards;
+	[_showingPicView.layer addAnimation:anim forKey:@"cornerRadius"];
 }
 
 - (void)scaleView{
@@ -520,7 +604,7 @@
 			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 				MBProgressHUD *hud = [MBProgressHUD HUDForView:_showingPicView];
 				if(!hud){
-					hud = [MBProgressHUD showMessage:@"正在加载:0%" toView:self];
+					hud = [self showMessage:@"正在加载:0%" toView:self];
 					[hud addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
 					
 					return ;
@@ -533,7 +617,7 @@
 				return ;
 				//TODO:	弹出提示
 			}
-			[MBProgressHUD hideHUDForView:self];
+			[MBProgressHUD hideHUDForView:self animated:YES];
 			UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
 		}];
 		
@@ -554,10 +638,10 @@
 - (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
 	
 	if (error) {
-		[MBProgressHUD showError:[NSString stringWithFormat:@"保存出错,错误:%@",error] toView:self];
+		[self showError:[NSString stringWithFormat:@"保存出错,错误:%@",error] toView:self];
 		return;
 	}
-	[MBProgressHUD showSuccess:@"保存成功" toView:self];
+	[self showSuccess:@"保存成功" toView:self];
 	
 }
 
@@ -673,6 +757,48 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 		_BGAlpha = _delegate?_delegate.BGAlpha:1;
 	}
 	return _BGAlpha;
+}
+
+#pragma mark - 因为cocoapod的原因所以把MBProgress+MJ的内容搬到这里
+- (MBProgressHUD *)showMessage:(NSString *)message toView:(UIView *)view {
+	if (view == nil) view = [[UIApplication sharedApplication].windows lastObject];
+	// 快速显示一个提示信息
+	MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+	hud.label.text = message;
+	// 隐藏时候从父控件中移除
+	hud.removeFromSuperViewOnHide = YES;
+	// YES代表需要蒙版效果
+	//    hud.dimBackground = YES;
+	return hud;
+}
+
+- (void)show:(NSString *)text icon:(NSString *)icon view:(UIView *)view
+{
+	if (view == nil) view = [[UIApplication sharedApplication].windows lastObject];
+	// 快速显示一个提示信息
+	MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+	hud.label.text = text;
+	// 设置图片
+	hud.customView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"MBProgressHUD.bundle/%@", icon]]];
+	// 再设置模式
+	hud.mode = MBProgressHUDModeCustomView;
+	
+	// 隐藏时候从父控件中移除
+	hud.removeFromSuperViewOnHide = YES;
+	
+	// 1秒之后再消失
+	[hud hideAnimated:YES afterDelay:0.7];
+}
+
+#pragma mark 显示错误信息
+- (void)showError:(NSString *)error toView:(UIView *)view{
+	[self show:error icon:@"error.png" view:view];
+}
+
+
+- (void)showSuccess:(NSString *)success toView:(UIView *)view
+{
+	[self show:success icon:@"success.png" view:view];
 }
 @end
 

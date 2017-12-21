@@ -1,9 +1,9 @@
-///是否WIFI环境，此方法在新版本已被移出
+///鏄惁WIFI鐜锛屾鏂规硶鍦ㄦ柊鐗堟湰宸茶绉诲嚭
 //#define isEnableWIFI [[Reachability reachabilityForLocalWiFi] currentReachabilityStatus] != NotReachable
 
 
-///是否WIFI环境
+///鏄惁WIFI鐜
 //#define isEnableWIFI ReachableViaWiFi == [[Reachability reachabilityForInternetConnection] currentReachabilityStatus]
 
-///是否能上网（在wifi后判断就是测试是否流量，因为Reachability没有判断是否流量的方法）
+///鏄惁鑳戒笂缃戯紙鍦╳ifi鍚庡垽鏂氨鏄祴璇曟槸鍚︽祦閲忥紝鍥犱负Reachability娌℃湁鍒ゆ柇鏄惁娴侀噺鐨勬柟娉曪級
 #define isEnable4G [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable
