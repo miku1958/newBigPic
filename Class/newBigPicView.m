@@ -114,7 +114,11 @@
 		
 		[_contentView setBounces:NO ];
 		[_contentView setAlwaysBounceVertical:YES];
-		
+#ifdef __IPHONE_11_0
+		if (@available(iOS 11.0, *)) {
+			[_contentView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
+		}
+#endif
 	}
 	return _contentView;
 }
@@ -158,6 +162,8 @@
 		picURL = [self setRatioAndGetPicURLWithPicView:picView];
 	}
 	
+	_contentView.contentOffset = CGPointZero;
+	_contentView.contentInset = UIEdgeInsetsZero;
 	
 	switch (_effect) {
 		case BigPicDisplayEffectTypeEaseInOut:
@@ -598,6 +604,11 @@
 			sizeOriURL = [_thumb150whURL stringByReplacingOccurrencesOfString:self.exchangeStringFromThumbnailURL withString:self.exchangeStringToOriSizeURL];
 		}else{
 			sizeOriURL = _thumb150whURL;
+		}
+		if (!sizeOriURL.length) {
+			UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+			[self showMessage:@"正在保存" toView:self];
+			return;
 		}
 		
 		[UIImage downloadImageWithURL:sizeOriURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
