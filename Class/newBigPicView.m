@@ -19,7 +19,7 @@
 //FIXME:	在图片分辨率和手机分辨率刚刚好的情况下,会不能缩放
 
 
-@interface newBigPicView()<UIGestureRecognizerDelegate,UIScrollViewDelegate>{
+@interface newBigPicView()<UIGestureRecognizerDelegate,UIScrollViewDelegate,CAAnimationDelegate>{
 	CGFloat _screenWidth;//这三个全局变量在baseSetting中设置
 	CGFloat _screenHeight;
 	CGFloat _screenRatio;
@@ -179,7 +179,7 @@
 	}
 	
 	[self showingPicViewCornerRadius:0 AnimationTime:self.newBigPicAnimationTime];
-	
+
 	[UIView animateWithDuration:self.newBigPicAnimationTime animations:^{
 		
 		switch (_effect) {
@@ -550,10 +550,17 @@
 	anim.keyPath = @"cornerRadius";
 	anim.toValue = @(cornerRadius);
 	anim.duration = time;
+	anim.delegate = self;
 	anim.removedOnCompletion = NO;
 	// 保持最新的状态（默认值是kCAFillModeRemoved移除动画）
 	anim.fillMode = kCAFillModeForwards;
 	[_showingPicView.layer addAnimation:anim forKey:@"cornerRadius"];
+}
+-(void)animationDidStop:(CABasicAnimation *)anim finished:(BOOL)flag{
+	if ([anim isKindOfClass:CABasicAnimation.class]) {
+		[_showingPicView.layer setValue:anim.toValue forKeyPath:anim.keyPath];
+	}
+	[_showingPicView.layer removeAllAnimations];
 }
 
 - (void)scaleView{
