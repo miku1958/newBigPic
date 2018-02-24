@@ -17,9 +17,9 @@
 		FF4CB3901F4C1DF6003BAB54 /* libMBProgressHUD.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF4CB38E1F4C1DF6003BAB54 /* libMBProgressHUD.a */; };
 		FF4CB3911F4C1DF6003BAB54 /* libSDWebImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF4CB38F1F4C1DF6003BAB54 /* libSDWebImage.a */; };
 		FF60A4681F4D689C00C2507B /* picURLs.plist in Resources */ = {isa = PBXBuildFile; fileRef = FF60A4671F4D689C00C2507B /* picURLs.plist */; };
-		FF60A47E1F4D7F8100C2507B /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FF60A4751F4D7F8100C2507B /* Reachability.m */; };
-		FF60A47F1F4D7F8100C2507B /* newBigPicView.m in Sources */ = {isa = PBXBuildFile; fileRef = FF60A47A1F4D7F8100C2507B /* newBigPicView.m */; };
-		FF60A4801F4D7F8100C2507B /* newBigPicViewGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = FF60A47C1F4D7F8100C2507B /* newBigPicViewGroup.m */; };
+		FFA1FCC52040F8B6000FC83B /* newBigPicViewGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = FFA1FCB92040F8B6000FC83B /* newBigPicViewGroup.m */; };
+		FFA1FCC62040F8B6000FC83B /* newBigPicView.m in Sources */ = {isa = PBXBuildFile; fileRef = FFA1FCBA2040F8B6000FC83B /* newBigPicView.m */; };
+		FFA1FCC72040F8B6000FC83B /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FFA1FCC22040F8B6000FC83B /* Reachability.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,14 +39,14 @@
 		FF4CB38E1F4C1DF6003BAB54 /* libMBProgressHUD.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMBProgressHUD.a; path = "../../Library/Developer/Xcode/DerivedData/newBigPic-bhczghdrdzeoiddbcomiaouazapr/Build/Products/Debug-iphonesimulator/MBProgressHUD/libMBProgressHUD.a"; sourceTree = "<group>"; };
 		FF4CB38F1F4C1DF6003BAB54 /* libSDWebImage.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDWebImage.a; path = "../../Library/Developer/Xcode/DerivedData/newBigPic-bhczghdrdzeoiddbcomiaouazapr/Build/Products/Debug-iphonesimulator/SDWebImage/libSDWebImage.a"; sourceTree = "<group>"; };
 		FF60A4671F4D689C00C2507B /* picURLs.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = picURLs.plist; sourceTree = "<group>"; };
-		FF60A4741F4D7F8100C2507B /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
-		FF60A4751F4D7F8100C2507B /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
-		FF60A4761F4D7F8100C2507B /* shortCutFunc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shortCutFunc.h; sourceTree = "<group>"; };
-		FF60A4781F4D7F8100C2507B /* predefine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = predefine.h; sourceTree = "<group>"; };
-		FF60A4791F4D7F8100C2507B /* newBigPicView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = newBigPicView.h; sourceTree = "<group>"; };
-		FF60A47A1F4D7F8100C2507B /* newBigPicView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = newBigPicView.m; sourceTree = "<group>"; };
-		FF60A47B1F4D7F8100C2507B /* newBigPicViewGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = newBigPicViewGroup.h; sourceTree = "<group>"; };
-		FF60A47C1F4D7F8100C2507B /* newBigPicViewGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = newBigPicViewGroup.m; sourceTree = "<group>"; };
+		FFA1FCB92040F8B6000FC83B /* newBigPicViewGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = newBigPicViewGroup.m; sourceTree = "<group>"; };
+		FFA1FCBA2040F8B6000FC83B /* newBigPicView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = newBigPicView.m; sourceTree = "<group>"; };
+		FFA1FCBB2040F8B6000FC83B /* newBigPicView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = newBigPicView.h; sourceTree = "<group>"; };
+		FFA1FCBC2040F8B6000FC83B /* newBigPicViewGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = newBigPicViewGroup.h; sourceTree = "<group>"; };
+		FFA1FCBF2040F8B6000FC83B /* predefine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = predefine.h; sourceTree = "<group>"; };
+		FFA1FCC22040F8B6000FC83B /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		FFA1FCC32040F8B6000FC83B /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		FFA1FCC42040F8B6000FC83B /* shortCutFunc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shortCutFunc.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,7 +103,7 @@
 		FF3E11771E5FDF1200861941 /* newBigPic */ = {
 			isa = PBXGroup;
 			children = (
-				FF60A46D1F4D7F8100C2507B /* Class */,
+				FFA1FCB82040F8B6000FC83B /* Class */,
 				FF3E117B1E5FDF1200861941 /* AppDelegate.h */,
 				FF3E117C1E5FDF1200861941 /* AppDelegate.m */,
 				FF3E117E1E5FDF1200861941 /* ViewController.h */,
@@ -126,51 +126,51 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		FF60A46D1F4D7F8100C2507B /* Class */ = {
+		FFA1FCB82040F8B6000FC83B /* Class */ = {
 			isa = PBXGroup;
 			children = (
-				FF60A46E1F4D7F8100C2507B /* Lib */,
-				FF60A4791F4D7F8100C2507B /* newBigPicView.h */,
-				FF60A47A1F4D7F8100C2507B /* newBigPicView.m */,
-				FF60A47B1F4D7F8100C2507B /* newBigPicViewGroup.h */,
-				FF60A47C1F4D7F8100C2507B /* newBigPicViewGroup.m */,
+				FFA1FCBC2040F8B6000FC83B /* newBigPicViewGroup.h */,
+				FFA1FCB92040F8B6000FC83B /* newBigPicViewGroup.m */,
+				FFA1FCBB2040F8B6000FC83B /* newBigPicView.h */,
+				FFA1FCBA2040F8B6000FC83B /* newBigPicView.m */,
+				FFA1FCBD2040F8B6000FC83B /* Lib */,
 			);
 			path = Class;
-			sourceTree = "<group>";
+			sourceTree = SOURCE_ROOT;
 		};
-		FF60A46E1F4D7F8100C2507B /* Lib */ = {
+		FFA1FCBD2040F8B6000FC83B /* Lib */ = {
 			isa = PBXGroup;
 			children = (
-				FF60A46F1F4D7F8100C2507B /* 3rdParty */,
-				FF60A4771F4D7F8100C2507B /* private */,
+				FFA1FCBE2040F8B6000FC83B /* private */,
+				FFA1FCC02040F8B6000FC83B /* 3rdParty */,
 			);
 			path = Lib;
 			sourceTree = "<group>";
 		};
-		FF60A46F1F4D7F8100C2507B /* 3rdParty */ = {
+		FFA1FCBE2040F8B6000FC83B /* private */ = {
 			isa = PBXGroup;
 			children = (
-				FF60A4731F4D7F8100C2507B /* Reachability */,
+				FFA1FCBF2040F8B6000FC83B /* predefine.h */,
+			);
+			path = private;
+			sourceTree = "<group>";
+		};
+		FFA1FCC02040F8B6000FC83B /* 3rdParty */ = {
+			isa = PBXGroup;
+			children = (
+				FFA1FCC12040F8B6000FC83B /* Reachability */,
 			);
 			path = 3rdParty;
 			sourceTree = "<group>";
 		};
-		FF60A4731F4D7F8100C2507B /* Reachability */ = {
+		FFA1FCC12040F8B6000FC83B /* Reachability */ = {
 			isa = PBXGroup;
 			children = (
-				FF60A4741F4D7F8100C2507B /* Reachability.h */,
-				FF60A4751F4D7F8100C2507B /* Reachability.m */,
-				FF60A4761F4D7F8100C2507B /* shortCutFunc.h */,
+				FFA1FCC42040F8B6000FC83B /* shortCutFunc.h */,
+				FFA1FCC32040F8B6000FC83B /* Reachability.h */,
+				FFA1FCC22040F8B6000FC83B /* Reachability.m */,
 			);
 			path = Reachability;
-			sourceTree = "<group>";
-		};
-		FF60A4771F4D7F8100C2507B /* private */ = {
-			isa = PBXGroup;
-			children = (
-				FF60A4781F4D7F8100C2507B /* predefine.h */,
-			);
-			path = private;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -297,12 +297,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF60A4801F4D7F8100C2507B /* newBigPicViewGroup.m in Sources */,
-				FF60A47F1F4D7F8100C2507B /* newBigPicView.m in Sources */,
 				FF3E11801E5FDF1200861941 /* ViewController.m in Sources */,
 				FF3E117D1E5FDF1200861941 /* AppDelegate.m in Sources */,
 				FF3E117A1E5FDF1200861941 /* main.m in Sources */,
-				FF60A47E1F4D7F8100C2507B /* Reachability.m in Sources */,
+				FFA1FCC62040F8B6000FC83B /* newBigPicView.m in Sources */,
+				FFA1FCC72040F8B6000FC83B /* Reachability.m in Sources */,
+				FFA1FCC52040F8B6000FC83B /* newBigPicViewGroup.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

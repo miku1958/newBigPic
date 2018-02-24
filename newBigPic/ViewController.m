@@ -19,7 +19,7 @@
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
-
+NSString *str = @"abc" @"efg";
 }
 
 -(void)viewDidAppear:(BOOL)animated{
