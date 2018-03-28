@@ -141,7 +141,74 @@
 -(void)setPicView:(UIImageView *)picView  withEffect:(BigPicDisplayEffectType)effect largeImageURL:(NSString*)largeImageURL{
 	[self setPicView:picView withEffect:effect largeImageURL:largeImageURL cornerRadius:0];
 }
+-(void)setPicView:(UIImageView *)picView  withEffect:(BigPicDisplayEffectType)effect  largeImage:(UIImage*)largeImage  cornerRadius:(CGFloat)cornerRadius{
+	thumbCornerRadius = cornerRadius;
+	_showingPicView.layer.cornerRadius = cornerRadius;
+	_effect = effect;
+	_picSuperView = picView.superview;
+	_showingPicView.image = picView.image;
+	if (!self.delegate) {
+		UIBlurEffect * blur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
+		_bgView = [[UIVisualEffectView alloc]initWithEffect:blur];
+		_bgView.frame = self.bounds;
+		_bgView.alpha = 0;//改变 alpha 可以改变模糊度
+		[self insertSubview:_bgView atIndex:0];
+	}
 
+
+	_contentView.contentOffset = CGPointZero;
+	_contentView.contentInset = UIEdgeInsetsZero;
+
+	switch (_effect) {
+		case BigPicDisplayEffectTypeEaseInOut:
+			_showingPicView.frame = (CGRect){{self.center.x, self.center.y}, 0, 0};
+			_showingPicView.alpha = 0;
+			break;
+		case BigPicDisplayEffectTypeScale:
+			_showingPicView.frame = [_picSuperView convertRect:picView.frame toView:nil];
+			break;
+	}
+	if (!self.superview) {
+		[newBPKeywindow.rootViewController.view addSubview:self];
+	}
+
+	[self showingPicViewCornerRadius:0 AnimationTime:self.newBigPicAnimationTime];
+
+	[UIView animateWithDuration:self.newBigPicAnimationTime animations:^{
+
+		switch (_effect) {
+			case BigPicDisplayEffectTypeEaseInOut:
+				_showingPicView.alpha = 1;
+				break;
+			case BigPicDisplayEffectTypeScale:
+
+				break;
+		}
+
+		_bgView.alpha = self.BGAlpha;
+
+		if (_delegate) {
+			if(self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
+			   1>_picHWRatio){
+				if (0.5<=_picHWRatio){
+					_showingPicView.frame = (CGRect){{(_screenWidth/_picHWRatio-_screenWidth)/2, (_screenHeight-_screenWidth)/2}, _screenWidth, _screenWidth};
+				}else{
+					CGFloat picW = _screenWidth*1.5;
+					CGFloat picH = picW*_picHWRatio;
+					_showingPicView.frame = (CGRect){{(picH-_screenWidth)/2+(picW-picH), (_screenHeight-picH)/2}, picH, picH};
+				}
+			}else{
+				_showingPicView.frame = (CGRect){{0, _yWhenSameWH}, _screenWidth, _screenWidth};
+			}
+		}else{
+			[self showLargeImage:_showingPicView.image withAnimation:NO];
+		}
+
+	} completion:^(BOOL finished) {
+		newBPKeywindow.windowLevel = UIWindowLevelAlert;
+	}];
+	[self showLargeImage:largeImage];
+}
 -(void)setPicView:(UIImageView *)picView withEffect:(BigPicDisplayEffectType)effect largeImageURL:(NSString*)largeImageURL cornerRadius:(CGFloat)cornerRadius{
 	thumbCornerRadius = cornerRadius;
 	_showingPicView.layer.cornerRadius = cornerRadius;

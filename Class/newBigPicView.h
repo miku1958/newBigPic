@@ -120,6 +120,8 @@ typedef NS_ENUM(NSInteger, newPicPreloadSide) {
 
 -(void)setPicView:(UIImageView *)picView withEffect:(BigPicDisplayEffectType)effect largeImageURL:(NSString*)largeImageURL cornerRadius:(CGFloat)cornerRadius;
 
+-(void)setPicView:(UIImageView *)picView  withEffect:(BigPicDisplayEffectType)effect  largeImage:(UIImage*)largeImage  cornerRadius:(CGFloat)cornerRadius;
+
 /** 把图片的 superview 和需要显示的图片在这个 subviews 中的 index 整个一起发过来 ,没有动画,直接显示*/
 -(void)preLoadPicView:(UIImageView *)picView preloadType:(newPicPreloadSide)side;
 -(void)preLoadPicView:(UIImageView *)preloadImView;
