@@ -448,7 +448,7 @@
 
 -(void)getLargePicWithURL:(NSString *)picURL{
 
-	[UIImage downloadImageWithURL:picURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
+	[UIImage downloadImageWithURL:picURL options:newWebImageDownloaderLowPriority progress:^(NSInteger receivedSize, NSInteger totalSize) {
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 			MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
 			
