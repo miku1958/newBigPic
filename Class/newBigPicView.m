@@ -448,7 +448,7 @@
 
 -(void)getLargePicWithURL:(NSString *)picURL{
 
-	[UIImage downloadImageWithURL:picURL options:newWebImageDownloaderLowPriority progress:^(NSInteger receivedSize, NSInteger totalSize) {
+	[UIImage downloadImageWithURL:picURL options:newWebImageDownloaderLowPriority|newWebImageDownloaderProgressiveDownload progress:^(NSInteger receivedSize, NSInteger totalSize) {
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 			MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
 			
@@ -475,6 +475,9 @@
 		//TODO:	弹出提示
 	}
 	[MBProgressHUD hideHUDForView:self animated:YES];
+
+	BOOL useGradientAnimation = !_showingPicView.image;
+
 	_showingPicView.image = image;
 	
 	CGFloat picSizeWidth = _showingPicView.image.size.width;
@@ -485,6 +488,21 @@
 	if (!enableAnim) {
 		animTime = 0;
 	}
+	if (useGradientAnimation) {
+		_showingPicView.alpha = 0;
+		animTime = 0;
+	}
+	void(^undoGradientAnimationBlock)() = ^() {
+		if (useGradientAnimation) {
+			CGFloat animTime = self.newBigPicAnimationTime;
+			if (!enableAnim) {
+				animTime = 0;
+			}
+			[UIView animateWithDuration:animTime animations:^{
+				_showingPicView.alpha = 1;
+			}];
+		}
+	};
 	if (self.OptimizeDisplayOfLandscapePic==OptimizeLandscapeDisplayTypeYES&&
 		1>_picHWRatio) {
 		CGFloat picH = _showingPicView.frame.size.height;
@@ -510,6 +528,8 @@
 			_newFrameOfBigPicView = (CGRect){{0, 0}, _screenWidth, frameHeight};
 			
 			_opening = NO;
+
+			undoGradientAnimationBlock();
 		}];
 	}else{
 		_picVIewScale = 1;
@@ -528,6 +548,8 @@
 			_zoomMaxmumZoomScale = 1>_picVIewScale?1:_picVIewScale;
 			_contentView.minimumZoomScale = _zoomMinimumZoomScale;
 			_contentView.maximumZoomScale = _zoomMaxmumZoomScale;
+
+			undoGradientAnimationBlock();
 		}];
 	}
 }
