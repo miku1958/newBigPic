@@ -447,20 +447,28 @@
 }
 
 -(void)getLargePicWithURL:(NSString *)picURL{
-
-	[UIImage downloadImageWithURL:picURL options:newWebImageDownloaderLowPriority|newWebImageDownloaderProgressiveDownload progress:^(NSInteger receivedSize, NSInteger totalSize) {
-		dispatch_main_async_safe((^{
-			MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
-
-			if(!hud){
-				hud = [self showMessage:@"正在加载:0%" toView:self];
-				[hud.backgroundView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
-				return ;
+	MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
+	__block UIImage *largeImg;
+	if(!hud){
+		hud = [self showMessage:@"正在加载:0%" toView:self];
+		[hud.backgroundView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
+		hud.alpha = 0;
+		[UIView animateWithDuration:_newBigPicAnimationTime delay:_newBigPicAnimationTime options:UIViewAnimationOptionCurveEaseInOut animations:^{
+			if (!largeImg) {
+				hud.alpha = 1;
 			}
-			NSString *progress = [NSString stringWithFormat:@"正在加载:%lu%%",(unsigned long)(receivedSize*100/totalSize)];
-			hud.label.text =progress;
-		}));
+		} completion:nil];
+	}
+	[UIImage downloadImageWithURL:picURL options:newWebImageDownloaderLowPriority|newWebImageDownloaderProgressiveDownload progress:^(NSInteger receivedSize, NSInteger totalSize) {
+		if (totalSize<0) { return ; }
+		CGFloat progress = receivedSize/(CGFloat)totalSize;
+		NSString *progressStr = [NSString stringWithFormat:@"正在加载:%lu%%",(NSInteger)(progress*100)];
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(progress * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			hud.label.text = progressStr;
+		});
+		NSLog(@"%@",progressStr);
 	} completed:^(UIImage * image, NSData * data, NSError * error, UIImage *__autoreleasing *replaceSaveingImage) {
+		largeImg = image;
 		[self showLargeImage:image];
 	}];
 	
