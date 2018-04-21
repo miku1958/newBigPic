@@ -448,19 +448,18 @@
 
 -(void)getLargePicWithURL:(NSString *)picURL{
 	__block UIImage *largeImg;
-	[self dismissHUDWithAnimated:NO];
-	MBProgressHUD *hud = [self showHUDMessage:@"正在加载:0%"];
-	hud.alpha = 0;
-	[UIView animateWithDuration:_newBigPicAnimationTime delay:_newBigPicAnimationTime options:UIViewAnimationOptionCurveEaseInOut animations:^{
-		if (!largeImg) {
-			hud.alpha = 1;
+	__block MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
+	__block NSString *progressStr = @"正在加载:0%";
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+		if (!hud && !largeImg) {
+			[self showMessage:progressStr toView:self];
 		}
-	} completion:nil];
+	});
 	[UIImage downloadImageWithURL:picURL options:newWebImageDownloaderLowPriority|newWebImageDownloaderProgressiveDownload progress:^(NSInteger receivedSize, NSInteger totalSize) {
 		if (totalSize<0) { return ; }
 		CGFloat progress = receivedSize/(CGFloat)totalSize;
-		NSString *progressStr = [NSString stringWithFormat:@"正在加载:%lu%%",(NSInteger)(progress*100)];
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(progress * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			progressStr = [NSString stringWithFormat:@"正在加载:%lu%%",(NSInteger)(progress*100)];
 			hud.label.text = progressStr;
 		});
 		NSLog(@"%@",progressStr);
@@ -479,7 +478,7 @@
 		return ;
 		//TODO:	弹出提示
 	}
-	[self dismissHUDWithAnimated:YES];
+	[MBProgressHUD hideHUDForView:self animated:YES];
 
 	BOOL useGradientAnimation = !_showingPicView.image;
 
@@ -596,7 +595,7 @@
  */
 -(void)dismissBigPicView{
 	[UIImage cancelAllDownload];
-	[self dismissHUDWithAnimated:YES];
+	[MBProgressHUD hideHUDForView:self animated:YES];
 
 	UIImageView *showPicView = _picSuperView.subviews[_showingIndex];
 	CGRect oriFrameOfBigPicView = [_picSuperView convertRect:showPicView.frame toView:nil];
@@ -706,13 +705,14 @@
 		}else{
 			sizeOriURL = _thumb150whURL;
 		}
-		[self dismissHUDWithAnimated:NO];
-		MBProgressHUD *hud = [self getHUD];
-		[hud addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
 		if (!sizeOriURL.length) {
 			UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
-			hud.label.text = @"正在保存";
 			return;
+		}
+		MBProgressHUD *hud = [MBProgressHUD HUDForView:_showingPicView];
+		if (!hud) {
+			hud = [self showMessage:@"正在保存" toView:_showingPicView];
+			[hud addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissBigPicView)]];
 		}
 		
 		[UIImage downloadImageWithURL:sizeOriURL options:newWebImageLowPriority|newWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger totalSize) {
@@ -725,7 +725,8 @@
 				return ;
 				//TODO:	弹出提示
 			}
-			[self dismissHUDWithAnimated:YES];
+			[MBProgressHUD hideHUDForView:_showingPicView animated:YES];
+			[self showSuccess:@"保存成功" toView:self];
 			UIImageWriteToSavedPhotosAlbum(_showingPicView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
 		}];
 		
@@ -746,11 +747,11 @@
 - (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
 	
 	if (error) {
-		[self showHUDError:[NSString stringWithFormat:@"保存出错,错误:%@",error]];
+		[self showError:[NSString stringWithFormat:@"保存出错,错误:%@",error] toView:self];
 		return;
 	}
-	[self showHUDSuccess:@"保存成功"];
-	
+	[self showSuccess:@"保存成功" toView:self];
+
 }
 
 
@@ -868,18 +869,10 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 }
 
 #pragma mark - 因为cocoapod的原因所以把MBProgress+MJ的内容搬到这里
-- (MBProgressHUD *)getHUD{
-	MBProgressHUD *hud = [MBProgressHUD HUDForView:self];
-	if (!hud) {
-		[MBProgressHUD showHUDAddedTo:self animated:YES];
-	}
-	return hud;
-}
-
-- (MBProgressHUD *)showHUDMessage:(NSString *)message{
-
+- (MBProgressHUD *)showMessage:(NSString *)message toView:(UIView *)view {
+	if (view == nil) view = [[UIApplication sharedApplication].windows lastObject];
 	// 快速显示一个提示信息
-	MBProgressHUD *hud = [self getHUD];
+	MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
 	hud.label.text = message;
 	// 隐藏时候从父控件中移除
 	hud.removeFromSuperViewOnHide = YES;
@@ -887,13 +880,12 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 	//    hud.dimBackground = YES;
 	return hud;
 }
-- (void)dismissHUDWithAnimated:(BOOL)animated{
-	[MBProgressHUD hideHUDForView:self animated:animated];
-}
-- (void)showHUD:(NSString *)text icon:(NSString *)icon{
 
+- (void)show:(NSString *)text icon:(NSString *)icon view:(UIView *)view
+{
+	if (view == nil) view = [[UIApplication sharedApplication].windows lastObject];
 	// 快速显示一个提示信息
-	MBProgressHUD *hud = [self getHUD];
+	MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
 	hud.label.text = text;
 	// 设置图片
 	hud.customView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"MBProgressHUD.bundle/%@", icon]]];
@@ -908,13 +900,14 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 }
 
 #pragma mark 显示错误信息
-- (void)showHUDError:(NSString *)error{
-	[self showHUD:error icon:@"error.png"];
+- (void)showError:(NSString *)error toView:(UIView *)view{
+	[self show:error icon:@"error.png" view:view];
 }
 
 
-- (void)showHUDSuccess:(NSString *)success{
-	[self showHUD:success icon:@"success.png"];
+- (void)showSuccess:(NSString *)success toView:(UIView *)view
+{
+	[self show:success icon:@"success.png" view:view];
 }
 @end
 
